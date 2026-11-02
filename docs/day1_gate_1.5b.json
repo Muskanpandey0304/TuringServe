@@ -1,0 +1,13 @@
+{
+ "date": "2026-11-02",
+ "model": "/kaggle/working/models/Qwen2.5-1.5B-Instruct",
+ "G1_finite": true,
+ "G2_max_abs_fp16": 6652.0,
+ "G2": "pass",
+ "G3_ppl_fp32": 9.2122,
+ "G3_ppl_fp16": 9.2122,
+ "G3_rel_diff": 0.0,
+ "G3": true,
+ "G4_identical_first32": 0.965,
+ "verdict": "PASS"
+}

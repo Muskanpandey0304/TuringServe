@@ -78,3 +78,21 @@ notebooks/ excluded (Kaggle scratch cells, not real Python); E741 (l/m/I) ignore
 turingserve/ops/*.py, model/qwen2.py and metrics/prometheus.py (standard FlashAttention-paper / layer-
 index notation, renaming would only churn validated kernel code); B023 ignored in autopilot/tuner.py
 (the flagged lambdas are invoked synchronously inside the same loop iteration, not deferred).
+
+### 2026-11-02 (Kaggle, Tesla T4, pinned stack) - first real-datacenter-GPU measurements
+Machine: Kaggle notebook, GPU T4 x2 (one visible via CUDA_VISIBLE_DEVICES=0), torch==2.6.0+cu124,
+Triton 3.2.0, transformers pinned <5. Commit: 349b3f3 (pushed to GitHub, CI green).
+scripts/probe_triton_mma.py: mma.sync present: True, result matches torch.matmul (atol/rtol=1e-2),
+triton 9.47-9.48 TFLOPS, torch 18.08-22.56 TFLOPS (untuned Triton kernel vs cuBLAS; no kernel tuning
+applied yet - Autopilot's startup tuner has not been run).
+scripts/measure_bandwidth.py: Tesla T4 B_meas = 241.6 GB/s.
+scripts/day1_gate.py --model $TS_MODEL_15 (Qwen2.5-1.5B-Instruct) -> verdict PASS: G1 finite, G2 max
+|activation| 6652.0 (well under the 30,000 pass threshold), G3 ppl fp32 9.2122 == ppl fp16 9.2122
+(0.0000% relative difference), G4 96.5% of prompts had identical first-32 greedy tokens fp16 vs fp32.
+Results: docs/day1_gate_1.5b.json, docs/day1_gate.md.
+Operational note: the Kaggle kernel died unexpectedly twice while running the combined
+probe+bandwidth+day1_gate cell with "No persistence" set and downloads under /tmp; both times this
+meant re-downloading ~5GB of models/dataset from scratch after restart. Fix going forward: set
+notebook Persistence to "Variables and Files" and point downloads at /kaggle/working instead of /tmp
+so a kernel death does not require a full re-download; also split the combined cell into one cell per
+script so a crash doesn't lose results from steps that already finished.
