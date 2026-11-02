@@ -97,7 +97,7 @@ def summarize(recs: list[Record], duration: float) -> dict:
     ok = [r for r in recs if r.error is None and r.first is not None]
     ttft = [r.first - r.send for r in ok]
     tpot = [(r.end - r.first) / (r.output_tokens - 1) for r in ok if r.output_tokens > 1]
-    itl = [b - a for r in ok for a, b in zip(r.chunks, r.chunks[1:])]
+    itl = [b - a for r in ok for a, b in zip(r.chunks, r.chunks[1:], strict=False)]
     e2e = [r.end - r.send for r in ok]
     good = sum(1 for r in ok if r.first - r.send <= TTFT_SLO and (
         r.output_tokens <= 1 or (r.end - r.first) / (r.output_tokens - 1) <= TPOT_SLO))

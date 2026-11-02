@@ -34,6 +34,6 @@ class NgramProposer:
 
     def propose(self, seqs, ks: list[int], engine=None):
         out = []
-        for seq, k in zip(seqs, ks):
+        for seq, k in zip(seqs, ks, strict=False):
             out.append((propose(np.asarray(seq.token_ids), k, self.n_max, self.n_min), None))
         return out

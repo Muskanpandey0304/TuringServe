@@ -17,11 +17,19 @@ turingserve = "turingserve.cli:main"
 include = ["turingserve*"]
 
 [tool.ruff]
-line-length = 100
+line-length = 140
 target-version = "py310"
+extend-exclude = ["notebooks"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"turingserve/ops/*.py" = ["E741"]          # l, m, I: standard FlashAttention-paper notation
+"turingserve/model/qwen2.py" = ["E741"]     # l: layer index, matches kv_cache[l, ...] throughout
+"turingserve/metrics/prometheus.py" = ["E741"]  # l: label name in a tight comprehension
+"tests/kernels/test_kernels.py" = ["E741"]  # I: intermediate/GLU dim, matches the kernel it tests
+"turingserve/autopilot/tuner.py" = ["B023"]  # lambdas are invoked synchronously within the same loop iteration
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -13,7 +13,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-import src.generator as generator          # generator.py did `from src.llm import generate`
+import src.generator as generator  # generator.py did `from src.llm import generate`
 from src import eval as rag_eval
 from src.llm import LLMResult
 

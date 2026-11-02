@@ -103,7 +103,7 @@ def main() -> int:
     out16, s16 = run_dtype(a.model, torch.float16, prompts)
     p32, p16 = ppl(a.model, "float32"), ppl(a.model, "float16")
     rel = abs(p16 - p32) / p32
-    same = sum(x == y for x, y in zip(out32, out16)) / len(prompts)
+    same = sum(x == y for x, y in zip(out32, out16, strict=False)) / len(prompts)
     g1 = s16["finite"]
     g2 = "pass" if s16["max_abs"] < 30000 else ("warning" if s16["max_abs"] <= 65504 else "fail")
     g3 = rel <= 0.01

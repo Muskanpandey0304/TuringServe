@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import deque
 
-from turingserve.engine.sequence import BatchPlan, Scheduled, Sequence, SeqStatus
+from turingserve.engine.sequence import BatchPlan, Scheduled, SeqStatus, Sequence
 from turingserve.kv.kv_manager import KVCacheManager
 from turingserve.kv.prefix_cache import PrefixCache
 

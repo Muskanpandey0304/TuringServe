@@ -56,7 +56,7 @@ def test_layerwise_hidden_states_match_hf(tiny):
         ref = hf(torch.tensor([ids]), output_hidden_states=True).hidden_states
         _, got = ours.forward_dense(torch.tensor(ids), torch.arange(29), return_hidden=True)
     assert len(ref) == len(got) == c.num_layers + 1
-    for i, (r, g) in enumerate(zip(ref, got)):
+    for i, (r, g) in enumerate(zip(ref, got, strict=False)):
         assert (r[0] - g).abs().max() <= 1e-4, f"first diverging entry: {i}"
 
 

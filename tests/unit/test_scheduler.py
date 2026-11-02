@@ -30,7 +30,7 @@ def test_chunked_prefill_takes_ceil_steps_and_samples_once():
     eng = make_fake_engine(num_blocks=200, budget=64)
     prompt = list(range(1000))
     eng.add_request("a", prompt, sp(1))
-    steps, samples = 0, 0
+    steps, _samples = 0, 0
     while eng.has_unfinished():
         eng.step()
         steps += 1

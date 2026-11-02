@@ -95,7 +95,7 @@ def main():
                             "output_throughput_tok_s" else run["median"]["ttft"]["p90"])
                            for run in r["runs"] if run["kind"] == "concurrency"]
                     if pts:
-                        ax.plot(*zip(*sorted(pts)), marker="o",
+                        ax.plot(*zip(*sorted(pts), strict=False), marker="o",
                                 label=f"{r['meta']['engine']} {r['meta'].get('label', '')}")
                         plotted = True
                 if plotted:

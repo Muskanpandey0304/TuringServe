@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from turingserve.engine.detokenizer import Detokenizer
-from turingserve.engine.sequence import RequestOutput, Sequence, SeqStatus
+from turingserve.engine.sequence import RequestOutput, SeqStatus, Sequence
 from turingserve.engine.stop import find_stop_string, hold_back, is_stop_token
 
 

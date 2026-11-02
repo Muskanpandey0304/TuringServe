@@ -70,7 +70,7 @@ class DraftProposer:
             live = [i for i in range(len(seqs)) if ks[i] >= j]
             items = [BatchItem(seqs[i], L0[i] + j - 2, [drafts[i][-1]], "last") for i in live]
             rows = self._run_groups(items)
-            for r, i in zip(rows, live):
+            for r, i in zip(rows, live, strict=False):
                 pick(i, r, j - 1)
                 seqs[i].draft_computed = L0[i] + j - 1
         return [(drafts[i], torch.stack(qs[i]) if qs[i] else None) for i in range(len(seqs))]

@@ -47,7 +47,7 @@ def test_rejection_preserves_distribution_draft_model():
     q = [0.1, 0.2, 0.3, 0.4]
     n = 30000
     c = _distribution_test(q, p, n, 0)
-    chi = sum((ci - n * pi) ** 2 / (n * pi) for ci, pi in zip(c, p))
+    chi = sum((ci - n * pi) ** 2 / (n * pi) for ci, pi in zip(c, p, strict=False))
     assert chi < 16.27
 
 
@@ -55,7 +55,7 @@ def test_rejection_preserves_distribution_ngram_point_mass():
     p = [0.4, 0.3, 0.2, 0.1]
     n = 30000
     c = _distribution_test(None, p, n, 1)
-    chi = sum((ci - n * pi) ** 2 / (n * pi) for ci, pi in zip(c, p))
+    chi = sum((ci - n * pi) ** 2 / (n * pi) for ci, pi in zip(c, p, strict=False))
     assert chi < 16.27
 
 
@@ -68,7 +68,7 @@ class OracleDraft:
 
     def propose(self, seqs, ks, engine):
         out = []
-        for s, k in zip(seqs, ks):
+        for s, k in zip(seqs, ks, strict=False):
             ctx, drafts, qs = list(s.token_ids), [], []
             for _ in range(k):
                 t = next_token(ctx)

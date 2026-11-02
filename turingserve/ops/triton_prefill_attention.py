@@ -10,7 +10,6 @@ D = 128 with BLOCK_M = BLOCK_N = 64 uses Q 16 + K 16 + V 16 = 48 KiB <= 64 KiB o
 
 from __future__ import annotations
 
-import torch
 import triton
 import triton.language as tl
 

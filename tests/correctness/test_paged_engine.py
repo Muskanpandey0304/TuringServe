@@ -86,7 +86,7 @@ def test_batch_invariance_and_shuffled_blocks(tiny_model_dir):
         together = model.compute_logits(model.forward(
             inp.input_ids, inp.positions, inp.meta, eng.runner.kv_cache), inp.sample_indices)
     off = 0
-    for n, a in zip(lengths, alone):
+    for n, a in zip(lengths, alone, strict=False):
         assert (together[off:off + n] - a).abs().max() <= 1e-4, n
         off += n
 
@@ -96,7 +96,7 @@ def test_engine_greedy_equals_hf_with_chunking_and_batching(tiny_model_dir, toke
     prompts = [rand_ids(n, seed=n) for n in (7, 40, 130, 33, 90)]
     eng, _, mcfg = make_engine(tiny_model_dir, budget=48, tok=tokenizer)
     outs = eng.generate(prompts, SamplingParams(temperature=0.0, max_tokens=24))
-    for p, o in zip(prompts, outs):
+    for p, o in zip(prompts, outs, strict=False):
         assert o.token_ids == hf_greedy(hf, p, 24, mcfg.eos_token_ids)[: len(o.token_ids)]
         assert len(o.token_ids) == 24 or o.finish_reason == "stop"
 
