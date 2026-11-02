@@ -1,0 +1,13 @@
+{
+ "date": "2026-11-01",
+ "model": "/home/msi/models/Qwen2.5-0.5B-Instruct",
+ "G1_finite": true,
+ "G2_max_abs_fp16": 1713.0,
+ "G2": "pass",
+ "G3_ppl_fp32": 13.6541,
+ "G3_ppl_fp16": 13.652,
+ "G3_rel_diff": 0.00015379995752194835,
+ "G3": true,
+ "G4_identical_first32": 0.935,
+ "verdict": "PASS"
+}
