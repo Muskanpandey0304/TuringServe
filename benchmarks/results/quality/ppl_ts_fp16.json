@@ -1,0 +1,8 @@
+{
+ "engine": "turingserve",
+ "dtype": "float16",
+ "int8": false,
+ "model": "/kaggle/working/models/Qwen2.5-1.5B-Instruct",
+ "tokens": 299077,
+ "ppl": 9.212265458012594
+}
