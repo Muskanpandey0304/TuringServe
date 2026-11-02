@@ -113,3 +113,20 @@ generation of up to ~2000 tokens per request through the unbatched server, and o
 cannot interrupt a thread blocked in generate()). Treat HF baseline numbers as a small-sample indicator, not a sweep.
 (3) serve_bench treats --out as a directory and writes <date>_<engine>_<workload>_<label>.json inside it; copy the
 inner file out and rename before committing.
+
+### 2026-11-02 (Kaggle, Tesla T4) - speculative decoding sweep (Build Guide Phase 11)
+Commit under test: m3-rc. Qwen2.5-1.5B fp16, ShareGPT 40 prompts, 2 reps, concurrency 1/4/8/16, 0 errors in all 28 runs
+(benchmarks/results/*_spec-{none,ngram-k2,k4,k6,draft-k2,k4,k6}.json). Output tok/s:
+| method | c=1 | c=4 | c=8 | c=16 |
+|---|---|---|---|---|
+| none | 63.3 | 218.4 | 354.9 | 524.5 |
+| ngram k2 | 65.7 | 196.9 | 314.7 | 575.1 |
+| ngram k4 | 70.3 | 210.9 | 345.9 | 610.6 |
+| ngram k6 | 73.1 | 216.7 | 349.3 | 614.4 |
+| draft k2 | 38.1 | 134.1 | 219.6 | 420.1 |
+| draft k4 | 32.6 | 112.0 | 183.1 | 384.7 |
+| draft k6 | 27.5 | 97.9 | 153.2 | 357.2 |
+Findings: n-gram helps at c=1 (+4% to +15%) and c=16 (+10% to +17%) but is neutral to slightly negative at c=4/8
+(-1% to -10%). The 0.5B draft model is a net loss everywhere (-20% to -57% vs none; worse as k grows): on ShareGPT chat
+text the draft step costs more than the accepted tokens save on a T4. Autopilot should therefore pick between none
+and ngram only. Server logs downloaded earlier (server_spec_*.log, 22:41) were from the smoke test, not the sweep.
