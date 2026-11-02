@@ -21,7 +21,7 @@ def seq(params, seed=None, prompt=(1, 2), out=()):
 
 
 def chi2(counts, probs, n):
-    return sum((c - n * p) ** 2 / (n * p) for c, p in zip(counts, probs) if p > 0)
+    return sum((c - n * p) ** 2 / (n * p) for c, p in zip(counts, probs, strict=False) if p > 0)
 
 
 def draw(sampler, logits_row, params, n):

@@ -11,7 +11,7 @@ import torch
 from turingserve.config import EngineConfig
 from turingserve.engine.output_processor import OutputProcessor
 from turingserve.engine.sampling_params import SamplingParams
-from turingserve.engine.sequence import RequestOutput, Sequence, SeqStatus
+from turingserve.engine.sequence import RequestOutput, SeqStatus, Sequence
 from turingserve.kv.kv_manager import KVCacheManager
 from turingserve.kv.prefix_cache import PrefixCache
 from turingserve.metrics.prometheus import Metrics
@@ -238,9 +238,9 @@ class LLMEngine:
                  ) -> list[FinalOutput]:
         plist = params if isinstance(params, list) else [params] * len(prompts)
         ids = [f"gen-{id(self)}-{i}-{time.monotonic_ns()}" for i in range(len(prompts))]
-        for rid, p, sp in zip(ids, prompts, plist):
+        for rid, p, sp in zip(ids, prompts, plist, strict=False):
             self.add_request(rid, p, sp)
-        finals = {rid: FinalOutput(rid, "", [], None, len(p)) for rid, p in zip(ids, prompts)}
+        finals = {rid: FinalOutput(rid, "", [], None, len(p)) for rid, p in zip(ids, prompts, strict=False)}
         steps = 0
         while self.has_unfinished():
             for out in self.step():

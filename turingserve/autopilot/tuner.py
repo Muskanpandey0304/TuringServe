@@ -89,7 +89,7 @@ class TuningTable:
         best = None
         for name, cfg in table.items():
             dims = tuple(int(x) for x in name.split(","))
-            if all(d >= k for d, k in zip(dims, key)) and (best is None or dims < best[0]):
+            if all(d >= k for d, k in zip(dims, key, strict=False)) and (best is None or dims < best[0]):
                 best = (dims, cfg)
         return best[1] if best else next(iter(table.values()))
 

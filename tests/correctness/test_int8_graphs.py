@@ -25,6 +25,8 @@ def test_int8_reference_path_agrees_with_fp32_on_tiny(tiny_model_dir):
 @pytest.mark.gpu
 @pytest.mark.parametrize("n", [1, 3, 8, 31])
 def test_cuda_graph_equals_eager(n, tiny_model_dir):
+    from turingserve.engine.sampling_params import SamplingParams
+    from turingserve.engine.sequence import Sequence
     from turingserve.kv.kv_manager import KVCacheManager
     from turingserve.model.loader import load_weights
     from turingserve.model.qwen2 import Qwen2Model
@@ -32,8 +34,6 @@ def test_cuda_graph_equals_eager(n, tiny_model_dir):
     from turingserve.ops import get_ops
     from turingserve.runner.cuda_graphs import CudaGraphRunner
     from turingserve.runner.input_builder import BatchItem, InputBuilder
-    from turingserve.engine.sampling_params import SamplingParams
-    from turingserve.engine.sequence import Sequence
 
     cfg = Qwen2Config.from_dir(tiny_model_dir)
     dev = torch.device("cuda")

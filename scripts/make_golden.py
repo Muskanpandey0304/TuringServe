@@ -91,7 +91,7 @@ def main() -> None:
     fp32 = forward(a.model, torch.float32, plist, gen=True)
     fp16 = forward(a.model, torch.float16, plist, gen=False)
     noise = 0.0
-    for r32, r16 in zip(fp32, fp16):
+    for r32, r16 in zip(fp32, fp16, strict=False):
         # compare on the fp32 top-20 indices and the 8 full positions
         gathered = r16["top20_values"]                        # fp16's own top-20 values
         noise = max(noise, (gathered[:, 0] - r32["top20_values"][:, 0]).abs().max().item())

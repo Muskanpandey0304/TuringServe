@@ -67,14 +67,14 @@ class _Child:
 
 
 def _fmt_labels(names, key, extra=""):
-    parts = [f'{n}="{v}"' for n, v in zip(names, key)]
+    parts = [f'{n}="{v}"' for n, v in zip(names, key, strict=False)]
     if extra:
         parts.append(extra)
     return "{" + ",".join(parts) + "}" if parts else ""
 
 
 def _le(b) -> str:
-    return 'le="%s"' % b
+    return f'le="{b}"'
 
 
 def _render(metrics: list[_Metric]) -> bytes:
@@ -84,7 +84,7 @@ def _render(metrics: list[_Metric]) -> bytes:
         out.append(f"# TYPE {m.name} {m.kind}")
         if m.kind == "histogram":
             for key, (counts, n, s) in m.hist.items():
-                for b, c in zip(m.buckets, counts):
+                for b, c in zip(m.buckets, counts, strict=False):
                     out.append(f"{m.name}_bucket{_fmt_labels(m.labels, key, _le(b))} {c}")
                 out.append(f"{m.name}_bucket{_fmt_labels(m.labels, key, _le('+Inf'))} {n}")
                 out.append(f"{m.name}_sum{_fmt_labels(m.labels, key)} {s}")

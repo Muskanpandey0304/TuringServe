@@ -50,14 +50,14 @@ class SpecDecoder:
         # the draft model needs target block tables with room for 1 + k tokens
         if self.method == "draft":
             fitted = []
-            for s, k in zip(seqs, ks):
+            for s, k in zip(seqs, ks, strict=False):
                 k = self._fit(s, k)
                 eng.kv.allocate(s, 1 + k)                 # draft positions need blocks up front
                 fitted.append(k)
             ks = fitted
         proposals = self.proposer.propose(seqs, ks, eng)
         entries, qs, ds = [], [], []
-        for s, (drafts, q) in zip(seqs, proposals):
+        for s, (drafts, q) in zip(seqs, proposals, strict=False):
             drafts = drafts[: self._fit(s, len(drafts))]
             if q is not None:
                 q = q[: len(drafts)]
@@ -75,7 +75,7 @@ class SpecDecoder:
         eng.timer.start("output")
         outputs: list[RequestOutput] = []
         step_accepted = 0
-        for (s, toks), drafts, q, lg in zip(entries, ds, qs, logits):
+        for (s, _toks), drafts, q, lg in zip(entries, ds, qs, logits, strict=False):
             old_computed, L0, k = s.num_computed_tokens, len(s.token_ids), len(drafts)
             if not bool(torch.isfinite(lg).all()):
                 outputs.append(eng._finish_with_error(s))
