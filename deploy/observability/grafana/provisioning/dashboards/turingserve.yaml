@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: turingserve
+    type: file
+    options:
+      # run.sh rewrites REPO_DIR to the absolute path of this repository before starting Grafana
+      path: REPO_DIR/deploy/observability

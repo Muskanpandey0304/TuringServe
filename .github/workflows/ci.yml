@@ -1,0 +1,20 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  cpu-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install uv
+      - run: uv venv .venv --python 3.12
+      - run: |
+          . .venv/bin/activate
+          uv pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
+          uv pip install "transformers>=4.45,<5" safetensors numpy fastapi "uvicorn[standard]" pydantic \
+            httpx openai prometheus-client psutil pytest pytest-asyncio pytest-timeout hypothesis ruff
+          uv pip install -e . --no-deps
+      - run: . .venv/bin/activate && ruff check .
+      - run: . .venv/bin/activate && pytest -m "not gpu and not model and not slow and not kaggle" -q
