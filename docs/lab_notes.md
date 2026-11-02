@@ -96,3 +96,20 @@ meant re-downloading ~5GB of models/dataset from scratch after restart. Fix goin
 notebook Persistence to "Variables and Files" and point downloads at /kaggle/working instead of /tmp
 so a kernel death does not require a full re-download; also split the combined cell into one cell per
 script so a crash doesn't lose results from steps that already finished.
+
+### 2026-11-02 (Kaggle, Tesla T4, pinned stack) - first real serve_bench results, TuringServe vs HF naive baseline
+Commit under test: 349b3f3 (tag m3-rc). Qwen2.5-1.5B-Instruct fp16, ShareGPT 500 prompts, 3 reps per level.
+TuringServe concurrency sweep (benchmarks/results/2026-11-02_turingserve_sharegpt_t4-1.5b.json):
+c=1 ~61 tok/s (TPOT 16.3 ms), c=4 ~232, c=16 ~800, c=32 ~1175, c=64 ~1805 tok/s (TPOT 31.5 ms), 100% goodput, 0 errors.
+Prefill sweep (2k/4k/8k tokens, c=1) saved as ...turingserve_prefill_t4-1.5b-prefill.json.
+HF baseline (benchmarks/baselines/hf_server.py, one request at a time under a global lock): only a 10-prompt,
+1-rep, c=1 smoke run completed: 27.8 tok/s, TTFT p50/p90 0.084/0.128 s, TPOT 35.5/35.9 ms, 0 errors
+(...hf_baseline_t4-1.5b_smoke.json). Small sample by design limits; the server serializes requests so concurrency
+levels would not change its throughput.
+Operational notes: (1) the first HF attempt crashed with CUDA OOM because GPU 0 still held ~12 GB from the
+TuringServe server; fixed by launching the HF server with CUDA_VISIBLE_DEVICES=1 on the second T4. (2) A rerun of the
+full 200-prompt HF sweep, and later a 50/20-prompt rerun, ran 30-60+ min with no output (ignore_eos forces full-length
+generation of up to ~2000 tokens per request through the unbatched server, and one run froze the kernel; Cancel Run
+cannot interrupt a thread blocked in generate()). Treat HF baseline numbers as a small-sample indicator, not a sweep.
+(3) serve_bench treats --out as a directory and writes <date>_<engine>_<workload>_<label>.json inside it; copy the
+inner file out and rename before committing.
