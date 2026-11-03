@@ -183,7 +183,8 @@ def main():
         lengths = sorted({n for e in engines for n in per[e]})
         L += ["## Cold prefill (prefix caching off): time to first token by prompt length", "",
               "One request at a time, 5 prompts per length, 3 repetitions. TuringServe ran with `--no-prefix-caching`, "
-              "vLLM with `--no-enable-prefix-caching`; the spread inside each length is under a few percent, so every "
+              "vLLM with `--no-enable-prefix-caching` and llama.cpp with `--cache-ram 0 --no-cache-prompt`; the spread "
+              "inside each length is under a few percent, so every "
               "request was cold.", ""]
         rows = []
         for n in lengths:

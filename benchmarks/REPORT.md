@@ -51,7 +51,7 @@ Output tokens per second (higher is better); `ignore_eos` so every request gener
 
 ## Cold prefill (prefix caching off): time to first token by prompt length
 
-One request at a time, 5 prompts per length, 3 repetitions. TuringServe ran with `--no-prefix-caching`, vLLM with `--no-enable-prefix-caching`; the spread inside each length is under a few percent, so every request was cold.
+One request at a time, 5 prompts per length, 3 repetitions. TuringServe ran with `--no-prefix-caching`, vLLM with `--no-enable-prefix-caching` and llama.cpp with `--cache-ram 0 --no-cache-prompt`; the spread inside each length is under a few percent, so every request was cold.
 
 | prompt tokens | TuringServe | vLLM | llama.cpp | TuringServe speed-up vs vLLM | TuringServe speed-up vs llama.cpp |
 |---|---|---|---|---|---|
