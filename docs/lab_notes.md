@@ -147,3 +147,22 @@ off ngram) and a few R3 spec_skip, but it flaps spec_on off/on repeatedly instea
 (e.g. 8-16 req/s) or a repeat-heavy workload would be needed to show an Autopilot benefit; not claimed here.
 Process note: the first run of the cell wrote all three results to one file named {name}.json because a ! line inside a
 for loop does not interpolate variables; the full run was kept by renaming and the other two were rerun via subprocess.
+
+### 2026-11-03 (Kaggle, Tesla T4) - vLLM baseline
+vLLM 0.33.0 (torch 2.14.0+cu130, attention backend TRITON_ATTN, fp16, --max-model-len 4096, --gpu-memory-utilization 0.85),
+Qwen2.5-1.5B-Instruct, same serve_bench at tag m3-rc, ShareGPT with ignore_eos. Sample sizes differ from the TuringServe
+sweep (vLLM: c=1 60 prompts, c=4 150, c=16/32/64 400, 2 reps; TuringServe: 500 prompts, 3 reps), 0 errors in every run.
+Output tok/s (TTFT p50 ms / TPOT p50 ms):
+| c | TuringServe | vLLM | TuringServe vs vLLM |
+|---|---|---|---|
+| 1 | 61.2 (27 / 16.3) | 59.1 (27 / 17.0) | +4% |
+| 4 | 232.2 (44 / 17.1) | 229.7 (52 / 16.8) | +1% |
+| 16 | 799.5 (48 / 19.4) | 685.3 (71 / 22.1) | +17% |
+| 32 | 1176.3 (56 / 25.6) | 936.3 (103 / 31.2) | +26% |
+| 64 | 1805.2 (64 / 31.5) | 1308.0 (141 / 43.1) | +38% |
+Same speed at c=1 and c=4 (within noise given the smaller vLLM samples); TuringServe pulls ahead as concurrency grows.
+Prefill sweep caveat: both engines enable prefix caching by default and the prefill benchmark replays the same 15 prompts
+in the warm-up and every repetition, so the reported TTFT (TuringServe 44 ms, vLLM 68 ms p50; 8000-token prompts 64 ms vs 108 ms)
+is a prefix-cache hit and not cold prefill: 8000 tokens in 64 ms would need over 300 TFLOPs, five times the T4 peak.
+Do not cite these as prefill speed. Rerun both engines with prefix caching off (TuringServe --no-prefix-caching, vLLM
+--no-enable-prefix-caching) before comparing prefill.

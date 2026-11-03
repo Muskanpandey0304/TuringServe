@@ -35,6 +35,12 @@ Triton 3.2.0, TuringServe at tag `m3-rc`, Qwen2.5-1.5B-Instruct fp16. Raw per-re
 4. **Single GPU model, single run day.** Results are one T4 on one date (2026-11-02/03); Kaggle machines vary between
    sessions, so absolute tok/s should be read with that in mind and relative comparisons are the intended use.
 5. **Accuracy is reported separately** (`docs/quality.md`: WikiText-2 perplexity, GSM8K fp16 vs INT8).
+6. **Prefix caching flatters repeated prompts.** TuringServe and vLLM both enable prefix caching by default, and
+   `serve_bench` replays the same prompts in the warm-up and in every repetition. The ShareGPT sweeps are dominated by
+   decoding (`ignore_eos`, about 266 output tokens per request), so throughput is barely affected, but TTFT in
+   repetitions 2 and later can be optimistic. The prefill sweep is affected completely: it replays only 15 prompts, so
+   its TTFT is a cache hit, not cold prefill (8000 tokens in 64 ms is physically impossible on a T4). It must be rerun
+   with prefix caching disabled on both engines before any prefill claim is made.
 
 ## Reproducibility notes (mistakes that cost runs, and the fix)
 - Results are written to `/kaggle/working`, never `/tmp`: `/tmp` is lost when the kernel restarts.
