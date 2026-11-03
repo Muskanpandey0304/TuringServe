@@ -166,3 +166,11 @@ in the warm-up and every repetition, so the reported TTFT (TuringServe 44 ms, vL
 is a prefix-cache hit and not cold prefill: 8000 tokens in 64 ms would need over 300 TFLOPs, five times the T4 peak.
 Do not cite these as prefill speed. Rerun both engines with prefix caching off (TuringServe --no-prefix-caching, vLLM
 --no-enable-prefix-caching) before comparing prefill.
+
+### 2026-11-03 (Kaggle, Tesla T4) - TuringServe cold prefill (prefix caching off)
+`turingserve serve --max-model-len 8192 --no-prefix-caching`, tag m3-rc, torch 2.6.0+cu124, Triton 3.2.0, 15 prompts (5 each
+of 2048 / 4096 / 8000 tokens), c=1, 3 reps, 0 errors (benchmarks/results/*_turingserve_prefill_t4-1.5b-prefill-cold.json,
+server log in benchmarks/results/prefill_cold/). Cold TTFT median: 2048 tokens 303 ms (6,767 tok/s), 4096 tokens 665 ms
+(6,158 tok/s), 8000 tokens 1,678 ms (4,769 tok/s); min and max within about 3% of the median, so every request was cold.
+This replaces the earlier prefill run (44 ms p50), which was a prefix-cache hit. The server log does not print the cache
+setting; the timings themselves confirm it was off (8000 tokens in 64 ms with caching on vs 1,678 ms here).
