@@ -1,6 +1,6 @@
 # Quality: fp16 vs INT8 (W8A16)
 
-Qwen2.5-1.5B-Instruct on a Kaggle Tesla T4, repo tag m3-rc (commit 349b3f3), 2026-11-02.
+Qwen2.5-1.5B-Instruct on a Kaggle Tesla T4, repo commit 349b3f3 (now b6dc052; engine code identical to tag m3-rc), 2026-11-02.
 Raw files: `benchmarks/results/quality/`.
 
 ## WikiText-2 perplexity (test split, 299,077 tokens)

@@ -19,18 +19,23 @@ Triton 3.2.0, TuringServe at tag `m3-rc`, Qwen2.5-1.5B-Instruct fp16. Raw per-re
 | Speculative decoding sweep | 40 | 2 | c = 1, 4, 8, 16 |
 | Autopilot profile | 400 | 3 | Poisson 0.5 / 4 / 0.5 req/s, 120 s each |
 | HF naive baseline | 10 | 1 | c = 1 |
+| vLLM and llama.cpp ShareGPT | 60 / 150 / 400 | 2 | c = 1 / c = 4 / c = 16, 32, 64 |
+| vLLM larger batch and FLEX_ATTENTION ShareGPT | 300 | 1 | c = 16, 64 |
+| Cold prefill, every engine | 15 (5 per length) | 3 | c = 1; 2,048 / 4,096 / 8,000 tokens |
+| Ramp (TuringServe) | 300 | 1 | Poisson 0.5 to 8 req/s, 60 s per rate |
+| Soak (TuringServe) | 40,188 requests | 1 | Poisson 5.6 req/s for 2 hours |
 
 ## Known limitations
 1. **HF baseline is a smoke test.** The sequential server holds one lock and `ignore_eos` forces full-length
    generation, so a 200-prompt sweep took over an hour and froze the kernel more than once. Its 27.8 tok/s is a
    10-prompt, single-rep indicator, not a sweep, and its concurrency levels would not change the result.
 2. **Speculative sweep is small.** 40 prompts and 2 reps, no confidence intervals. Differences of a few percent
-   (n-gram at c=4 and c=8, about -1% to -10%) are within run-to-run noise and are described as neutral, not as
+   (n-gram at c=4 and c=8, about -1% to -11%) are within run-to-run noise and are described as neutral, not as
    regressions. The 0.5B draft model was slower than no speculation at every level (-20% to -57%); that is the
    measured result for this implementation on ShareGPT chat text, not a claim about draft-model speculation in general.
 3. **Autopilot test did not saturate the GPU.** At a 4 req/s peak the T4 is arrival-limited (KV usage under 4%, no
    preemptions), so throughput was 443.6 / 450.5 / 444.2 tok/s for off / off+ngram / full: no measurable benefit is
-   claimed. The controller also toggled `spec_on` 51 times in one run instead of settling. A heavier profile and a
+   claimed. The controller also made 51 decisions in one run, 27 of them switching speculation on or off, instead of settling. A heavier profile and a
    cooldown in the controller are planned follow-ups.
 4. **Single GPU model, single run day.** Results are one T4 on one date (2026-11-02/03); Kaggle machines vary between
    sessions, so absolute tok/s should be read with that in mind and relative comparisons are the intended use.
