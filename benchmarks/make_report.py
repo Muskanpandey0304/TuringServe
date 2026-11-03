@@ -303,31 +303,54 @@ def main():
                             skip = d["new"]
                         ex.append((d["ts"] - t0) / 60)
                         ey.append(k if on and not skip else 0)
-                    colors = {"R3": "tab:red", "R4": "tab:orange", "R5": "tab:green"}
-                    fig, axs = plt.subplots(3, 1, figsize=(7.2, 6.6), sharex=True)
-                    axs[0].step(lx, ly, where="post", color="tab:blue")
-                    axs[0].set_ylabel("offered load\n(req/s)")
-                    axs[1].step(ex, ey, where="post", color="black", lw=1.2)
-                    for rule, col in colors.items():
-                        pts = [(e, ey[i + 1]) for i, (d, e) in enumerate(zip(dec, ex[1:], strict=True)) if d["rule"] == rule]
-                        if pts:
-                            axs[1].scatter(*zip(*pts, strict=False), s=14, color=col, label=f"{rule} decision", zorder=3)
-                    axs[1].set_ylabel("speculation depth\n(0 = off)")
-                    axs[1].legend(fontsize=7, loc="upper right", ncol=3)
-                    axs[2].plot([(d["ts"] - t0) / 60 for d in dec], [d["signals"]["accepted_ema"] for d in dec],
-                                marker="o", ms=3, color="tab:purple")
-                    axs[2].set_ylabel("acceptance rate\n(EMA)")
-                    axs[2].set_xlabel("minutes (three repetitions of the same load profile)")
-                    for i, st in enumerate(starts):
+                    end_min = sum(durs) / 60
+                    hi = max(r for _, r in prof)
+                    fig, axs = plt.subplots(3, 1, figsize=(7.2, 6.8), sharex=True,
+                                            gridspec_kw={"height_ratios": [2, 1.1, 1.5]})
+                    for st in starts:
+                        t = st
+                        for dur, rate in prof:
+                            if rate == hi:
+                                for ax in axs:
+                                    ax.axvspan(t / 60, (t + dur) / 60, color="tab:blue", alpha=0.10, lw=0)
+                            t += dur
                         for ax in axs:
                             ax.axvline(st / 60, color="grey", ls=":", lw=0.8)
-                        axs[0].text(st / 60 + 0.1, max(ly) * 0.92, f"rep {i + 1}", fontsize=7, color="grey")
+                    dx = [(d["ts"] - t0) / 60 for d in dec]
+                    axs[0].step(lx, ly, where="post", color="tab:blue")
+                    axs[0].set_ylabel("offered load (req/s)", color="tab:blue")
+                    twin = axs[0].twinx()
+                    twin.scatter(dx, [d["signals"]["decode_batch"] for d in dec], s=10, color="dimgray")
+                    twin.set_ylabel("sequences decoding\nat each decision", color="dimgray")
+                    for i_rep, st in enumerate(starts):
+                        axs[0].text(st / 60 + 0.1, hi * 0.9, f"rep {i_rep + 1}", fontsize=7, color="grey")
+                    depth_color = {1: "#fdae6b", 2: "#fd8d3c", 3: "#e6550d", 4: "#a63603"}
+                    active = 0.0
+                    for n in range(len(ex)):
+                        a0 = ex[n]
+                        b0 = ex[n + 1] if n + 1 < len(ex) else end_min
+                        if ey[n] > 0:
+                            axs[1].broken_barh([(a0, b0 - a0)], (0, 1), color=depth_color.get(ey[n], "#a63603"))
+                            active += b0 - a0
+                    for d, x in zip(dec, dx, strict=True):
+                        if d["setting"] == "spec_on":
+                            axs[1].axvline(x, color="tab:green" if d["new"] else "tab:red", lw=0.7, alpha=0.8)
+                    axs[1].set_ylim(0, 1)
+                    axs[1].set_yticks([])
+                    axs[1].set_ylabel("speculation\nactive")
+                    axs[1].text(0.995, 0.5, f"active {active / end_min:.0%} of the run", transform=axs[1].transAxes,
+                                ha="right", va="center", fontsize=8, bbox={"facecolor": "white", "alpha": 0.85, "lw": 0})
+                    axs[2].plot(dx, [d["signals"]["accepted_ema"] for d in dec], marker="o", ms=3, color="tab:purple")
+                    axs[2].set_ylabel("n-gram acceptance\nrate (EMA)")
+                    axs[2].set_xlabel("minutes (three repetitions of the same load profile)")
+                    axs[2].set_xlim(0, end_min)
                     save_fig(fig, "autopilot_timeline.png")
                     flips = sum(1 for d in dec if d["setting"] == "spec_on")
                     L += ["![Autopilot decisions over the load profile](figures/autopilot_timeline.png)", "",
-                          f"Top: offered load. Middle: effective speculation depth after each decision (0 means speculation is off). "
-                          f"Bottom: the n-gram acceptance rate that drove the decisions. Speculation was switched on or off {flips} times "
-                          f"across the three repetitions.", ""]
+                          f"Shaded: the {hi:g} req/s phases. Top: offered load (line) and the number of sequences decoding at each "
+                          f"decision (dots). Middle: when speculation was active (bar colour = depth); green and red lines mark "
+                          f"speculation switched on and off. Bottom: the n-gram acceptance rate behind the decisions. Speculation was "
+                          f"switched on or off {flips} times and was active for {active / end_min:.0%} of the run.", ""]
 
     # ---- ramp
     ramp = groups.get("ramp", [])

@@ -94,7 +94,7 @@ Autopilot made 51 decisions in the `full` run: R3 spec_skip x6, R4 spec_k x17, R
 
 ![Autopilot decisions over the load profile](figures/autopilot_timeline.png)
 
-Top: offered load. Middle: effective speculation depth after each decision (0 means speculation is off). Bottom: the n-gram acceptance rate that drove the decisions. Speculation was switched on or off 27 times across the three repetitions.
+Shaded: the 4 req/s phases. Top: offered load (line) and the number of sequences decoding at each decision (dots). Middle: when speculation was active (bar colour = depth); green and red lines mark speculation switched on and off. Bottom: the n-gram acceptance rate behind the decisions. Speculation was switched on or off 27 times and was active for 6% of the run.
 
 ## Ramp: maximum sustainable rate (TuringServe)
 
