@@ -13,6 +13,7 @@ import argparse
 import glob
 import json
 import os
+import re
 from collections import Counter, defaultdict
 
 VLLM_ISSUE_PREFILL = ("10.2 s", "vLLM-latest default backend, T4, Qwen2.5-1.5B (issue #60821); "
@@ -50,6 +51,8 @@ def classify(r):
     ds = r["meta"].get("dataset")
     if ds == "prefill":
         return "prefill_cold" if label.endswith("prefill-cold") else "other"
+    if label.startswith("ablation-"):
+        return "ablation"
     if label.startswith("spec-"):
         return "spec"
     if label.startswith("autopilot-"):
@@ -352,6 +355,44 @@ def main():
                           f"decision (dots). Middle: when speculation was active (bar colour = depth); green and red lines mark "
                           f"speculation switched on and off. Bottom: the n-gram acceptance rate behind the decisions. Speculation was "
                           f"switched on or off {flips} times and was active for {active / end_min:.0%} of the run.", ""]
+
+    # ---- ablations
+    abl = groups.get("ablation", [])
+    if abl:
+        st = defaultdict(dict)
+        for r in abl:
+            name, lvl = r["meta"]["label"][len("ablation-"):].rsplit("-", 1)
+            st[name][lvl] = r["runs"][0]["median"]
+        known = ["baseline", "no-cuda-graphs", "no-chunked-prefill", "no-prefix-caching", "int8", "ngram-speculation", "autopilot-off"]
+        order = [n for n in known if n in st] + sorted(set(st) - set(known))
+        base = st.get("baseline", {})
+
+        def thr(m, b, n):
+            if m is None:
+                return "-"
+            v = m["output_throughput_tok_s"]
+            return f"{v:.1f}" + (f" ({v / b['output_throughput_tok_s'] - 1:+.0%})" if b and n != "baseline" else "")
+
+        rows = [[n, thr(st[n].get("c1"), base.get("c1"), n), thr(st[n].get("c32"), base.get("c32"), n),
+                 fmt(st[n]["c32"]["ttft"]["p90"] * 1000, 0) if "c32" in st[n] else "-",
+                 fmt(st[n]["c32"]["tpot"]["p90"] * 1000, 1) if "c32" in st[n] else "-",
+                 sum(m["errors"] for m in st[n].values())] for n in order]
+        L += ["## Ablations (one feature changed at a time)", "",
+              "ShareGPT, one repetition: 24 prompts at 1 client and 192 prompts at 32 clients, all in one session, so compare rows "
+              "with each other rather than with the larger sweeps above.", "",
+              table(rows, ["configuration", "1 client tok/s", "32 clients tok/s", "TTFT p90 at 32 (ms)",
+                           "TPOT p90 at 32 (ms)", "errors"]), ""]
+        micro = sorted(glob.glob(os.path.join(a.results, "ablation", "micro_decode_*.txt")))
+        if micro:
+            mrows = []
+            for f in micro:
+                txt = open(f, errors="replace").read()
+                tok = re.search(r"([0-9.]+) tok/s", txt)
+                sol = re.search(r"speed of light ([0-9.]+) tok/s; reached (\d+)%", txt)
+                mrows.append([os.path.basename(f)[len("micro_decode_"):-4], tok.group(1) if tok else "-",
+                              f"{sol.group(2)}% of {sol.group(1)} tok/s" if sol else "-"])
+            L += ["Kernel check without the server (batch-1 decode, no CUDA graphs, measured memory bandwidth as the speed of light):", "",
+                  table(mrows, ["kernels", "tok/s", "share of speed of light"]), ""]
 
     # ---- ramp
     ramp = groups.get("ramp", [])

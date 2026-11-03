@@ -1,0 +1,2 @@
+cuda: 32.2 tok/s  (weights 1.78 GB)
+B_meas 235 GB/s -> speed of light 131.8 tok/s; reached 24%
