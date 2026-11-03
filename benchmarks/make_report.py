@@ -17,8 +17,9 @@ from collections import Counter, defaultdict
 
 VLLM_ISSUE_PREFILL = ("10.2 s", "vLLM-latest default backend, T4, Qwen2.5-1.5B (issue #60821); "
                       "1.1 s with FlashInfer, which is disabled on SM75 by default")
-ENGINES = ["turingserve", "vllm", "llamacpp", "hf"]
-NAMES = {"turingserve": "TuringServe", "vllm": "vLLM", "llamacpp": "llama.cpp", "hf": "Hugging Face"}
+ENGINES = ["turingserve", "vllm", "vllm-tuned", "vllm-flex", "vllm-flashinfer", "llamacpp", "hf"]
+NAMES = {"turingserve": "TuringServe", "vllm": "vLLM", "vllm-tuned": "vLLM (batch 16384)", "vllm-flex": "vLLM FLEX_ATTENTION",
+         "vllm-flashinfer": "vLLM FLASHINFER", "llamacpp": "llama.cpp", "hf": "Hugging Face"}
 
 
 def load_all(results_dir):

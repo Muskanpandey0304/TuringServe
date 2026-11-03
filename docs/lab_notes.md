@@ -211,3 +211,11 @@ log shows every one of the 55 requests evaluating the full prompt. Same serve_be
 | 8000 | 1,678 ms | 11,065 ms | 1,871 ms |
 TuringServe is 1.25x / 1.24x / 1.12x faster than llama.cpp and 3.1x / 4.8x / 6.6x faster than vLLM at 2048 / 4096 / 8000 tokens. llama.cpp's
 prefill time grows about 2.2x per doubling, like TuringServe's, and unlike vLLM's slow attention path (3.4-3.5x per doubling).
+
+### 2026-11-03 (Kaggle, Tesla T4) - vLLM with a larger prefill batch
+vLLM 0.33.0, default TRITON_ATTN backend, `--max-num-batched-tokens 16384 --max-model-len 8192 --no-enable-prefix-caching` (the log confirms
+`max_num_batched_tokens=16384`, `enable_prefix_caching=False`). Cold prefill TTFT median: 2048 tokens 966 ms, 4096 tokens 3,361 ms, 8000 tokens
+11,458 ms, against 939 / 3,204 / 11,065 ms with the default batch size: no gain (3-5% slower). The prefill cost is in the attention kernel, not the
+chunk size. ShareGPT, 300 prompts x 1 rep: 617 tok/s at 16 clients and 1,085 tok/s at 64 clients (TTFT p90 245 ms and 2,642 ms), 0 errors.
+vLLM 0.33 ignores the VLLM_ATTENTION_BACKEND environment variable ("Unknown vLLM environment variable"); a backend must be requested with
+`--attention-backend`.
