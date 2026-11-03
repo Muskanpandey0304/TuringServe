@@ -40,7 +40,9 @@ Triton 3.2.0, TuringServe at tag `m3-rc`, Qwen2.5-1.5B-Instruct fp16. Raw per-re
    decoding (`ignore_eos`, about 266 output tokens per request), so throughput is barely affected, but TTFT in
    repetitions 2 and later can be optimistic. The prefill sweep is affected completely: it replays only 15 prompts, so
    its TTFT is a cache hit, not cold prefill (8000 tokens in 64 ms is physically impossible on a T4). It must be rerun
-   with prefix caching disabled on both engines before any prefill claim is made.
+   with prefix caching disabled on both engines before any prefill claim is made. That was done on 2026-11-03
+   (`*_prefill_t4-1.5b-prefill-cold.json`); the earlier `*_prefill_t4-1.5b-prefill.json` files are cache hits and
+   must not be cited as prefill speed.
 
 ## Reproducibility notes (mistakes that cost runs, and the fix)
 - Results are written to `/kaggle/working`, never `/tmp`: `/tmp` is lost when the kernel restarts.

@@ -174,3 +174,18 @@ server log in benchmarks/results/prefill_cold/). Cold TTFT median: 2048 tokens 3
 (6,158 tok/s), 8000 tokens 1,678 ms (4,769 tok/s); min and max within about 3% of the median, so every request was cold.
 This replaces the earlier prefill run (44 ms p50), which was a prefix-cache hit. The server log does not print the cache
 setting; the timings themselves confirm it was off (8000 tokens in 64 ms with caching on vs 1,678 ms here).
+
+### 2026-11-03 (Kaggle, Tesla T4) - cold prefill: TuringServe vs vLLM (prefix caching off in both)
+vLLM 0.33.0 (torch 2.14.0+cu130, TRITON_ATTN backend, enable_prefix_caching=False confirmed in its log) vs TuringServe at m3-rc
+(torch 2.6.0+cu124, `--no-prefix-caching`). Same serve_bench prefill set: 5 prompts each of 2048 / 4096 / 8000 tokens, c=1,
+3 reps, 0 errors, per-length spread under 1% (vLLM) and 3% (TuringServe) so every request was cold.
+| prompt tokens | TuringServe TTFT | vLLM TTFT | TuringServe speed-up |
+|---|---|---|---|
+| 2048 | 303 ms (6,767 tok/s) | 939 ms (2,182 tok/s) | 3.1x |
+| 4096 | 665 ms (6,158 tok/s) | 3,204 ms (1,278 tok/s) | 4.8x |
+| 8000 | 1,678 ms (4,769 tok/s) | 11,065 ms (723 tok/s) | 6.6x |
+vLLM's prefill time grows about 3.4-3.5x per doubling of the prompt (939 -> 3,204 -> 11,065 ms), the quadratic cost of a slow
+attention path; TuringServe grows about 2.2-2.5x. vLLM has no FlashAttention path for sm_75 and falls back to its Triton
+attention backend on this stack, which is the gap the project's MMA attention kernels close. Limits: one T4, one vLLM
+version and default settings, 5 prompts per length; vLLM may add a faster sm_75 attention path later, so re-run this baseline
+right before publishing (P55).
