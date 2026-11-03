@@ -237,3 +237,11 @@ Ramp (ShareGPT, 60 s per rate): 0.5 / 1 / 2 / 3 / 4 / 6 / 8 req/s all at 100% go
 p50 37.7 ms. The server was not saturated at the highest rate tested, so its capacity is at least 8 req/s.
 Soak: PASS. Poisson load at 5.6 req/s (70% of the highest tested rate) for 2.00 h: 40,188 requests, 40,188 ok, 0 4xx, 0 5xx, 0 client exceptions; server RSS
 1,687 MB at minute 10 and 1,689 MB at the end (+0.14%, limit +5%); at the end 0 requests tracked and 5 free + 19,472 cached = 19,477 of 19,478 blocks.
+
+### 2026-11-03 (Kaggle, Tesla T4) - test suite on the T4
+Pinned stack (torch 2.6.0+cu124, Triton 3.2.0, transformers 4.57.6, Python 3.13), engine code identical to tag m3-rc
+(logs: benchmarks/results/gpu_tests/). `pytest -m gpu`: 189 passed, 24 skipped, 0 failed (185 Triton kernel tests in tests/kernels, 4 INT8/CUDA-graph
+tests in tests/correctness). The 24 skips are the attention needle cases that only apply when each query maps to its own KV head (G=1). The remaining
+115 tests (unit, correctness, end-to-end) pass on the same machine. In `test_cuda_graph_equals_eager` the n=31 case was resized to sequences of
+5 + 15 * i tokens (longest 455, under the 512-token model limit) with 600 KV blocks (462 needed); CUDA-graph replay equals eager execution
+bit for bit for n = 1, 3, 8 and 31.

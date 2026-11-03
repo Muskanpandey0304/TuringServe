@@ -1,0 +1,8 @@
+torch          2.6.0+cu124
+triton         3.2.0
+transformers   4.57.6
+tokenizers     0.22.2
+torch.cuda     12.4  available=True
+device         Tesla T4  capability=(7, 5)
+memory         free 14.46 GiB / total 14.56 GiB
+DecodeStream   OK
