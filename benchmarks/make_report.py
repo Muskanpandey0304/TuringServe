@@ -270,6 +270,64 @@ def main():
                 c = Counter((d["rule"], d["setting"]) for d in dec)
                 L += [f"Autopilot made {len(dec)} decisions in the `full` run: "
                       + ", ".join(f"{rule} {setting} x{n}" for (rule, setting), n in sorted(c.items())) + ".", ""]
+                full = next((r for r in ap_runs if r["meta"]["label"] == "autopilot-full"), None)
+                if plt is not None and full is not None:
+                    dec.sort(key=lambda d: d["ts"])
+                    prof = [(float(x.split(":")[0]), float(x.split(":")[1])) for x in full["meta"]["args"]["profile"].split(",")]
+                    durs = [x["duration_s"] for x in full["runs"][0]["all"]]
+                    starts = [sum(durs[:i]) for i in range(len(durs))]
+                    t0 = dec[0]["ts"]                       # time zero: the first decision, a few seconds after the run starts
+                    # offered load: the profile repeated once per repetition
+                    lx, ly = [], []
+                    for st in starts:
+                        t = st
+                        for dur, rate in prof:
+                            lx += [t / 60, (t + dur) / 60]
+                            ly += [rate, rate]
+                            t += dur
+                    # effective speculation depth: k while speculation is on and not skipped, else 0
+                    first = {}
+                    for d in dec:
+                        first.setdefault(d["setting"], d["old"])
+                    on, k, skip = first.get("spec_on", True), first.get("spec_k", 4), first.get("spec_skip", False)
+                    ex, ey = [0.0], [k if on and not skip else 0]
+                    for i, d in enumerate(dec):
+                        if d["setting"] == "spec_on":
+                            on = d["new"]
+                            if on:
+                                nxt = next((x["old"] for x in dec[i + 1:] if x["setting"] == "spec_k"), None)
+                                k = nxt if nxt is not None else k
+                        elif d["setting"] == "spec_k":
+                            k = d["new"]
+                        elif d["setting"] == "spec_skip":
+                            skip = d["new"]
+                        ex.append((d["ts"] - t0) / 60)
+                        ey.append(k if on and not skip else 0)
+                    colors = {"R3": "tab:red", "R4": "tab:orange", "R5": "tab:green"}
+                    fig, axs = plt.subplots(3, 1, figsize=(7.2, 6.6), sharex=True)
+                    axs[0].step(lx, ly, where="post", color="tab:blue")
+                    axs[0].set_ylabel("offered load\n(req/s)")
+                    axs[1].step(ex, ey, where="post", color="black", lw=1.2)
+                    for rule, col in colors.items():
+                        pts = [(e, ey[i + 1]) for i, (d, e) in enumerate(zip(dec, ex[1:], strict=True)) if d["rule"] == rule]
+                        if pts:
+                            axs[1].scatter(*zip(*pts, strict=False), s=14, color=col, label=f"{rule} decision", zorder=3)
+                    axs[1].set_ylabel("speculation depth\n(0 = off)")
+                    axs[1].legend(fontsize=7, loc="upper right", ncol=3)
+                    axs[2].plot([(d["ts"] - t0) / 60 for d in dec], [d["signals"]["accepted_ema"] for d in dec],
+                                marker="o", ms=3, color="tab:purple")
+                    axs[2].set_ylabel("acceptance rate\n(EMA)")
+                    axs[2].set_xlabel("minutes (three repetitions of the same load profile)")
+                    for i, st in enumerate(starts):
+                        for ax in axs:
+                            ax.axvline(st / 60, color="grey", ls=":", lw=0.8)
+                        axs[0].text(st / 60 + 0.1, max(ly) * 0.92, f"rep {i + 1}", fontsize=7, color="grey")
+                    save_fig(fig, "autopilot_timeline.png")
+                    flips = sum(1 for d in dec if d["setting"] == "spec_on")
+                    L += ["![Autopilot decisions over the load profile](figures/autopilot_timeline.png)", "",
+                          f"Top: offered load. Middle: effective speculation depth after each decision (0 means speculation is off). "
+                          f"Bottom: the n-gram acceptance rate that drove the decisions. Speculation was switched on or off {flips} times "
+                          f"across the three repetitions.", ""]
 
     # ---- ramp
     ramp = groups.get("ramp", [])

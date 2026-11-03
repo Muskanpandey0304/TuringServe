@@ -92,6 +92,10 @@ Run size: 40x2 (prompts x repetitions).
 
 Autopilot made 51 decisions in the `full` run: R3 spec_skip x6, R4 spec_k x17, R4 spec_on x27, R5 spec_k x1.
 
+![Autopilot decisions over the load profile](figures/autopilot_timeline.png)
+
+Top: offered load. Middle: effective speculation depth after each decision (0 means speculation is off). Bottom: the n-gram acceptance rate that drove the decisions. Speculation was switched on or off 27 times across the three repetitions.
+
 ## Ramp: maximum sustainable rate (TuringServe)
 
 | rate (req/s) | goodput | errors | out tok/s | TTFT p90 (ms) | TPOT p50 (ms) |
