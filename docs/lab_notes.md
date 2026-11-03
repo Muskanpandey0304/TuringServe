@@ -51,14 +51,6 @@ Decision / next step: keep the pinned stack (torch 2.6.0 / Triton 3.2.0). Measur
 Machine: WSL2 Ubuntu, torch==2.6.0+cu124, Triton 3.2.0, transformers==4.57.6, Python 3.12.16.
 Commit: pushed to https://github.com/Muskanpandey0304/TuringServe
 Result: pytest tests/kernels -m gpu -q -> 185 passed, 24 skipped (every Triton kernel vs its reference,
-on real CUDA for the first time). scripts/day1_gate.py --model  -> verdict PASS
-(G1 finite, G2 max|logit| 1713 pass, G3 ppl fp32 13.6541 vs fp16 13.652, rel diff 0.015%, G4 93.5%).
-pytest -m not
-
-### 2026-11-02 (WSL2, laptop GTX 1650, pinned stack) - first run of the full suite under the real pinned stack
-Machine: WSL2 Ubuntu, torch==2.6.0+cu124, Triton 3.2.0, transformers==4.57.6, Python 3.12.16.
-Commit: pushed to https://github.com/Muskanpandey0304/TuringServe
-Result: pytest tests/kernels -m gpu -q -> 185 passed, 24 skipped (every Triton kernel vs its reference,
 on real CUDA for the first time). scripts/day1_gate.py --model $TS_MODEL_05 -> verdict PASS
 (G1 finite, G2 max|logit| 1713 pass, G3 ppl fp32 13.6541 vs fp16 13.652, rel diff 0.015%, G4 93.5%).
 pytest -m "not gpu and not model and not slow and not kaggle" -q -> initially 7 failed (test_vs_hf.py,
