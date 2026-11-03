@@ -219,3 +219,11 @@ vLLM 0.33.0, default TRITON_ATTN backend, `--max-num-batched-tokens 16384 --max-
 chunk size. ShareGPT, 300 prompts x 1 rep: 617 tok/s at 16 clients and 1,085 tok/s at 64 clients (TTFT p90 245 ms and 2,642 ms), 0 errors.
 vLLM 0.33 ignores the VLLM_ATTENTION_BACKEND environment variable ("Unknown vLLM environment variable"); a backend must be requested with
 `--attention-backend`.
+
+### 2026-11-03 (Kaggle, Tesla T4) - vLLM attention backends
+vLLM 0.33.0 lists TRITON_ATTN and FLEX_ATTENTION as the valid backends on this GPU. Requesting FLASHINFER (`--attention-backend FLASHINFER`, with
+flashinfer-python installed) fails at engine start: `ValueError: Selected backend AttentionBackendEnum.FLASHINFER is not valid for this
+configuration. Reason: ['compute capability not supported']` (log: benchmarks/results/vllm/vllm_flashinfer_refused.log; the `--attention-config`
+JSON form fails the same way). The VLLM_ATTENTION_BACKEND environment variable is ignored by 0.33.0 ("Unknown vLLM environment variable").
+So the 1.1 s FlashInfer prefill reported in vLLM issue #60821 cannot be reproduced on a T4 with this version: vLLM's fastest available path on
+sm_75 is the Triton attention backend measured above. FLEX_ATTENTION is accepted by the server and is measured separately.
