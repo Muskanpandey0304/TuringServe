@@ -39,7 +39,7 @@ def test_cuda_graph_equals_eager(n, tiny_model_dir):
     dev = torch.device("cuda")
     model = Qwen2Model(cfg, load_weights(tiny_model_dir, cfg, dev, torch.float16), get_ops("triton"),
                        dev, torch.float16, 512)
-    nb = 400
+    nb = 600          # n=31 needs about 470 blocks; every sequence stays below the 512-token model limit
     kv = torch.zeros(cfg.num_layers, 2, nb, cfg.num_kv_heads, 16, cfg.head_dim, dtype=torch.float16,
                      device=dev)
     graphs = CudaGraphRunner(model, kv, (1, 2, 4, 8, 16, 32), 32, 512, dev)
@@ -47,7 +47,7 @@ def test_cuda_graph_equals_eager(n, tiny_model_dir):
     mgr = KVCacheManager(nb)
     items = []
     for i in range(n):
-        L = 5 + 17 * i
+        L = 5 + 15 * i
         s = Sequence(str(i), rand_ids(L, seed=i), L, SamplingParams())
         mgr.allocate(s, L)
         items.append(BatchItem(s, L - 1, [s.token_ids[-1]], "last"))
