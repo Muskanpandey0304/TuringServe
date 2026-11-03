@@ -35,7 +35,7 @@ tests, and measured honestly against real engines on the same GPU.
 | 8,000-token prefill, Qwen2.5-1.5B, T4 | n/a | **10.2 s** with the default backend (1.1 s with FlashInfer, which vLLM disables on SM75 by default) [V] | **Target ≤ 2.0 s** |
 | Tuning | Fixed | Many manual flags | **Autopilot:** profiles the GPU at startup, adapts while running |
 | Speculative decoding | None | Several methods | Prompt lookup (n-gram) + draft model, switched on/off automatically |
-| Proof | One throughput number | Production-grade | Test pyramid in CI, standard metrics, load and soak tests, used by your RAG app |
+| Proof | One throughput number | Production-grade | Test pyramid in CI, standard metrics, load and soak tests |
 
 **The honest headline claim** (only after you measure it):
 "On Turing GPUs, TuringServe's attention uses tensor cores because it pins Triton 3.2. The default
@@ -187,7 +187,7 @@ vLLM's FlashInfer result (1.1 s) [V]. Hence the target of ≤ 2.0 s.
 ## 3. System overview
 
 ```
- Clients (curl, OpenAI SDK, RAG app, lm-eval, benchmark client)
+ Clients (curl, OpenAI SDK, applications, lm-eval, benchmark client)
       │ HTTP + SSE
       ▼
  ┌──────────────────────────── API SERVER (FastAPI, 1 uvicorn worker) ─────────────────────────────┐
@@ -911,7 +911,7 @@ turingserve/                                 (git repo, inside WSL at ~/code/tur
 ├── scripts/  probe_triton_mma.py · measure_bandwidth.py · day1_gate.py · perplexity.py · make_tiny_model.py ·
 │             make_golden.py · check_versions.py
 ├── benchmarks/  serve_bench.py · datasets.py · offline_bench.py · chaos.py · soak.py · make_report.py ·
-│                compare_rag_answers.py · micro/{decode_speed,bench_*}.py · baselines/hf_server.py ·
+│                micro/{decode_speed,bench_*}.py · baselines/hf_server.py ·
 │                results/*.json · figures/*.png · data/ (git-ignored) · REPORT.md
 ├── deploy/observability/  prometheus.yml · grafana/provisioning/{datasources,dashboards}/*.yaml · dashboard.json · run.sh
 ├── notebooks/kaggle/  00_setup · 10_turingserve_bench · 20_vllm_latest · 22_llamacpp · 30_quality (.ipynb)
@@ -996,8 +996,6 @@ unsupported by the interpreter, mark that test `gpu`).
 - **Synthetic fixed:** WikiText-2 text cut to exactly 512 prompt tokens, 128 output tokens, `ignore_eos`.
 - **Prefill:** prompts of 2,048, 4,096 and 8,000 tokens, `max_tokens = 1`, concurrency 1. TTFT is the
   result (the comparison with vLLM issue #60821).
-- **RAG:** real prompts captured from your RAG project (55 dev + 27 held-out questions), greedy,
-  `max_tokens = 512`, natural stopping. This shows prefix caching and prompt lookup.
 
 ### 10.3 Fairness rules
 - Prompts are sent to **`/v1/completions`** as text with the chat template already applied, so every
@@ -1091,7 +1089,7 @@ and output tokens, error), `summary` (all metrics of §10.4), `gpu_log` (clocks/
 | W8A16 INT8 | ✅ Use | Decode is bandwidth-bound; simple kernel [S] |
 | W8A8 INT8 tensor cores (SmoothQuant) | ⏸ Stretch | Needs activation calibration [S] |
 | INT4 (AWQ/GPTQ) | ⏸ Stretch | Kernel and checkpoint work [S] |
-| Prompt-lookup speculation | ✅ Use | No extra model; strong for RAG (answers copy the context) [S] |
+| Prompt-lookup speculation | ✅ Use | No extra model; strong when answers copy text from the prompt [S] |
 | Draft-model speculation, adaptive | ✅ Use | Helps at low batch, hurts at high batch → Autopilot [S] |
 | EAGLE / Medusa | ⏸ Stretch | Needs trained heads [S] |
 | Per-request seeds via exponential race | ✅ Use | Reproducible and batched [S] |
@@ -1114,11 +1112,11 @@ logprobs, `n > 1` / beam search, embeddings endpoint, native Windows, AMD GPUs, 
 pipeline parallelism, disaggregated prefill, KV offload to CPU.
 
 **Stretch (only after v1.0), in order of value:**
-1. **Llama 3.2 architecture**, so the RAG's real model (`llama3.2:3b`) can run on TuringServe. Needs:
+1. **Llama 3.2 architecture**, so Llama models (for example `Llama-3.2-3B-Instruct`) can run on TuringServe. Needs:
    no QKV bias, `rope_theta` 500,000 and the **"llama3" RoPE frequency scaling** (factor 32,
    low_freq_factor 1, high_freq_factor 4, original context 8192; read the exact values from `config.json`).
    The 3B needs ~6.4 GB in fp16 → T4 only.
-2. JSON-schema structured output (grammar-constrained decoding), which would let the RAG's `v3` prompt run.
+2. JSON-schema structured output (grammar-constrained decoding) for clients that need JSON answers.
 3. INT4 AWQ (W4A16) · 4. EAGLE heads · 5. Overlap scheduling (CPU prepares step n+1 while the GPU runs step n) ·
 6. Engine process split · 7. W8A8 SmoothQuant · 8. Tensor parallelism on T4 ×2.
 
@@ -1168,9 +1166,8 @@ not verified yet, is written in the Build Guide section **"Problems found in the
 | 27 | Memory budget formula was vague | Exact profiler formula with baseline, non-torch memory, graph reserve and a minimum check |
 | 28 | Scheduler preemption could undo already-scheduled work | Preempt only in the decode pass, newest first; no admissions after a preemption |
 | 29 | Benchmark fairness was underspecified | Pre-templated `/v1/completions`, `ignore_eos`, token-count check, warm-up, 3 runs, clock logging, defined SLOs |
-| 30 | Your RAG uses **Ollama** (`ollama` package, `llama3.2:3b`), not an OpenAI client; `src.generator` imports `generate` by name [M] | New stdlib-HTTP provider in the RAG; same model (Qwen2.5-1.5B) on both backends; prompt capture patches `src.generator.generate` |
-| 31 | Docker networking between Docker Desktop and WSL is uncertain | Prometheus/Grafana as plain binaries in WSL |
-| 32 | Locust/k6 and our own client overlapped | Own async client only |
+| 30 | Docker networking between Docker Desktop and WSL is uncertain | Prometheus/Grafana as plain binaries in WSL |
+| 31 | Locust/k6 and our own client overlapped | Own async client only |
 
 ---
 

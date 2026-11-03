@@ -229,7 +229,7 @@ def main():
     ap.add_argument("--model", required=True)
     ap.add_argument("--tokenizer", required=True)
     ap.add_argument("--engine", default="turingserve")
-    ap.add_argument("--dataset", default="sharegpt", choices=["sharegpt", "synthetic", "prefill", "rag"])
+    ap.add_argument("--dataset", default="sharegpt", choices=["sharegpt", "synthetic", "prefill"])
     ap.add_argument("--num-prompts", type=int, default=500)
     ap.add_argument("--mode", default="concurrency", choices=["concurrency", "rate", "ramp", "profile"])
     ap.add_argument("--concurrency", default="1,4,16,32,64")
