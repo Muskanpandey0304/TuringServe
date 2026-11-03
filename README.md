@@ -30,12 +30,12 @@ which is generated only from committed result JSON files.
 
 ### Headline results (one Kaggle Tesla T4, Qwen2.5-1.5B-Instruct fp16)
 
-| Measurement | TuringServe | vLLM 0.33.0 (Triton attention on sm_75) |
-|---|---|---|
-| Cold prefill, 8,000-token prompt (prefix caching off) | 1.68 s | 11.07 s (6.6x slower) |
-| Cold prefill, 2,048 / 4,096 tokens | 0.30 s / 0.67 s | 0.94 s / 3.20 s |
-| ShareGPT output tok/s, 64 concurrent clients | 1,805 | 1,308 (TuringServe +38%) |
-| ShareGPT output tok/s, 1 / 4 concurrent clients | 61.2 / 232.2 | 59.1 / 229.7 (equal within noise) |
+| Measurement | TuringServe | vLLM 0.33.0 (Triton attention on sm_75) | llama.cpp (f16 GGUF, CUDA) |
+|---|---|---|---|
+| Cold prefill, 8,000-token prompt (prefix caching off) | 1.68 s | 11.07 s | 1.87 s |
+| Cold prefill, 2,048 / 4,096 tokens | 0.30 s / 0.67 s | 0.94 s / 3.20 s | 0.38 s / 0.82 s |
+| ShareGPT output tok/s, 64 concurrent clients | 1,805 | 1,308 | 413 (16 slots) |
+| ShareGPT output tok/s, 1 / 4 concurrent clients | 61.2 / 232.2 | 59.1 / 229.7 | 55.0 / 82.2 |
 
 INT8 weights (W8A16) cost +0.16% WikiText-2 perplexity and no measurable GSM8K change. N-gram speculation helps at low and high concurrency (up to +17%) and is neutral in between; the 0.5B draft model is slower than no speculation everywhere on this workload. Autopilot showed no measurable benefit under the test load. Sample sizes and known limits are in [docs/benchmark_methodology.md](docs/benchmark_methodology.md).
 
