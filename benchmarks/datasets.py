@@ -89,21 +89,6 @@ def load_prefill(tok, lengths=(2048, 4096, 8000), n_each: int = 5, seed: int = 0
     return items
 
 
-def load_rag(path: str, tok, seed: int = 0) -> list[BenchItem]:
-    """JSONL of {"system": str|None, "prompt": str}. Greedy, max_tokens 512, natural stopping.
-    The file is git-ignored (it contains arXiv text); regenerate it with scripts/rag/dump_llm_prompts.py."""
-    items = []
-    with open(path, encoding="utf-8") as f:
-        for line in f:
-            r = json.loads(line)
-            msgs = ([{"role": "system", "content": r["system"]}] if r.get("system") else []) + [
-                {"role": "user", "content": r["prompt"]}]
-            prompt = _templated(tok, msgs)
-            items.append(BenchItem(prompt, 512, False, _count(tok, prompt)))
-    random.Random(seed).shuffle(items)
-    return items
-
-
 def load(name: str, tok, n: int, args=None) -> list[BenchItem]:
     import os
 
@@ -113,6 +98,4 @@ def load(name: str, tok, n: int, args=None) -> list[BenchItem]:
         return load_synthetic(tok, n)
     if name == "prefill":
         return load_prefill(tok)
-    if name == "rag":
-        return load_rag(os.environ.get("TS_RAG_PROMPTS", "benchmarks/data/rag_prompts.jsonl"), tok)
     raise ValueError(name)

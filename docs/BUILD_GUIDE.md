@@ -55,14 +55,13 @@ WSL terminal:        cd ~/code/turingserve && source .venv/bin/activate
 | 8–9 | 11 | **M4**: speculative decoding |
 | 9–10 | 12, 13 | Autopilot, observability |
 | 11 | 14 | **M5**: load/soak/chaos, full report |
-| 12 | 15 | **M6 / v1.0**: RAG integration, docs, blog, resume |
+| 12 | 15 | **M6 / v1.0**: docs, blog, resume |
 
 ---
 
 ## Problems found in the review, and what to do about each
 
-These problems were found by checking the plan against your real machine (27 Oct 2026), your RAG
-project and current tools. Each one has a suggested fix, and the phases below already follow it.
+These problems were found by checking the plan against your real machine (27 Oct 2026) and current tools. Each one has a suggested fix, and the phases below already follow it.
 **Read this section once before Phase 0.** Labels: **[M]** measured on your machine, **[V]** verified from
 a source (ARCH §15), **[S]** engineering judgement.
 
@@ -72,8 +71,7 @@ a source (ARCH §15), **[S]** engineering judgement.
 - *Why it matters:* TuringServe needs almost all of the 4 GB. With Ollama loaded, the memory profiler stops
   with "not enough GPU memory", tests run out of memory, or the KV cache becomes tiny.
 - *What to do:* before every session run `ollama ps`, then `ollama stop <model>` for each model listed, or
-  quit Ollama from the system tray (§0.1). Never run Ollama and TuringServe on the laptop GPU at the same
-  time (Phase 15 runs them one after the other). Optional: let Ollama unload sooner by itself with
+  quit Ollama from the system tray (§0.1). Never run Ollama and TuringServe on the laptop GPU at the same time. Optional: let Ollama unload sooner by itself with
   `setx OLLAMA_KEEP_ALIVE 1m` in PowerShell, then restart Ollama (its default is 5 minutes).
 - *Check:* `nvidia-smi` shows less than ~500 MiB used.
 
@@ -97,8 +95,7 @@ a source (ARCH §15), **[S]** engineering judgement.
 **P4. The laptop GPU is small and has no tensor cores (GTX 1650, 4 GB)** [M][S]
 - *Why it matters:* laptop speed numbers do not represent the T4, and the 1.5B in fp16 (3.1 GB of weights) barely fits.
 - *What to do:* develop and test correctness on the laptop with the 0.5B; publish only Kaggle T4 numbers. On
-  the laptop, run the 1.5B in INT8 (after Phase 10), or in fp16 with a small KV cache only for the RAG
-  comparison (Phase 15 B).
+  the laptop, run the 1.5B in INT8 (after Phase 10), or in fp16 with a small KV cache.
 - *Check:* every result file records the GPU name; the README labels laptop numbers separately.
 
 **P5. The laptop GPU runs hot (69 °C during the review)** [M]
@@ -167,7 +164,7 @@ a source (ARCH §15), **[S]** engineering judgement.
 - *What to do:* always export a backup first. If the move fails, unregister, import from the backup, and set the default user (§0.2).
 
 **P16. Windows programs must reach the server that runs inside WSL** [S]
-- *Why it matters:* your RAG app runs in Windows Python and calls TuringServe in WSL (Phase 15).
+- *Why it matters:* programs running on Windows (PowerShell, Windows Python) call TuringServe inside WSL.
 - *What to do:* keep `--host 0.0.0.0` (the default). From PowerShell check `curl.exe http://localhost:8000/health`.
   If that fails, make sure `C:\Users\msi\.wslconfig` does not contain `localhostForwarding=false`, run
   `wsl --shutdown`, and start the server again.
@@ -182,10 +179,6 @@ a source (ARCH §15), **[S]** engineering judgement.
 - *What to do:* send pre-templated prompts to `/v1/completions`; fix output lengths with `ignore_eos`; check
   that `usage.prompt_tokens` matches your own count; warm up; repeat 3 times and report the median; log GPU
   clocks and power (ARCH §10.3, Phase 8).
-
-**P19. The captured RAG prompts contain text from arXiv papers** [S]
-- *Why it matters:* publishing them in a public repo may break the papers' licenses.
-- *What to do:* keep `benchmarks/data/` git-ignored and publish only the script that regenerates the prompts (Phase 9, step 2).
 
 ### C. Problems in the earlier plan (already fixed in v3; know the reasons for interviews)
 
@@ -210,45 +203,15 @@ a source (ARCH §15), **[S]** engineering judgement.
 | P36 | Docker Desktop ↔ WSL networking for Prometheus is uncertain | Prometheus and Grafana as plain binaries in WSL | Phase 13 |
 | P37 | Scope creep (never finishing) | Milestones; M2 is already a complete project; stretch items only after v1.0 | Timeline |
 
-### D. Problems in connecting your RAG project (Phase 15)
-
-**P38. Your RAG talks to Ollama through the `ollama` package, not an OpenAI-style API** [M]
-- *What to do:* add an `openai_compat` provider to `src/llm.py` that uses only the standard library
-  (`urllib.request`, `json`), so the RAG spec's "one LLM SDK" rule still holds (Phase 15 A).
-
-**P39. Your RAG's model is `llama3.2:3b`, which TuringServe v1.0 cannot run** [M]
-- *Why it matters:* TuringServe v1.0 supports only the Qwen2 architecture, and the 3B in fp16 (~6.4 GB) does not fit in 4 GB.
-- *What to do:* compare the two backends with the **same** model on both, Qwen2.5-1.5B-Instruct (Phase 15 B).
-  Llama 3.2 support is stretch item 1 (Phase 16), running on the T4.
-
-**P40. Your RAG's structured-output prompt (`PROMPT_VERSION=v3`) needs JSON-schema decoding** [M]
-- *What to do:* use the default `v1r` prompt for the comparison. The new provider raises a clear
-  `NotImplementedError` if a schema is passed. Grammar-constrained decoding is stretch item 2.
-
-**P41. `src/generator.py` imports `generate` by name** [M]
-- *Why it matters:* patching `src.llm.generate` does not affect it, so a prompt-capture script would silently capture nothing.
-- *What to do:* patch `src.generator.generate` (the script in Phase 9, step 2 does this).
-
-**P42. Every eval run writes to the same file names, and `.env` may hold other settings** [M]
-- *What to do:* move the result files into `eval/backend_compare/` after every run (Phase 15 C).
-  `load_dotenv()` does not override variables already set in the shell, so the `$env:...` lines in Phase 15
-  take priority over `.env`. Still look at `.env` for `LLM_PROVIDER` and `LLM_MODEL` before you start.
-
-**P43. Ollama's default repetition penalty may differ from TuringServe's default (1.0)** [S]
-- *Why it matters:* different decoding settings make the answer comparison unfair.
-- *What to do:* set `LLM_REPEAT_PENALTY=1.0` for both runs (Phase 15 A and C).
-
-### E. Not verified yet: how to settle each one
+### D. Not verified yet: how to settle each one
 
 | # | Open question | How to settle it | If the answer is "no" |
 |---|---|---|---|
 | P44 | Does Triton 3.2 emit tensor-core `mma.sync` on sm_75? (inferred; the source tested 3.1.0) | MMA probe (§0.8, K.4) | Fallback torch 2.5.1 / Triton 3.1.0 (confirmed) |
 | P45 | Does the GTX 1650 run tensor-core instructions at all, and how fast? | MMA probe correctness and TFLOPS on the laptop | The laptop is for correctness only anyway; if `tl.dot` fails there, run those kernel tests only on Kaggle |
 | P46 | Is Qwen2.5 safe in fp16? | Day-1 gate (§0.11, K.4) | SmolLM2 family |
-| P47 | Do the Ollama tags `qwen2.5:1.5b-instruct-fp16` / `qwen2.5:1.5b-instruct-q8_0` exist? | https://ollama.com/library/qwen2.5/tags | Create the model from the bartowski GGUF with a Modelfile (Phase 15 B) |
 | P49 | Is the f16 file in `bartowski/Qwen2.5-1.5B-Instruct-GGUF` named `*f16.gguf`? | `--include "*f16.gguf"`, then `ls` (K.5) | Convert with llama.cpp's `convert_hf_to_gguf.py --outtype f16` |
 | P50 | Are the lm-eval flag names unchanged? | `lm_eval --help` | Use the current names; note them in the lab notes |
-| P51 | Is `router` the config behind the README's held-out result? | `CONFIGS` in `src/eval.py` and the README | Use the config the README names |
 | P52 | Is `tokenizers.decoders.DecodeStream` available? | `check_versions.py` (§0.7) | Use the offset-based fallback detokenizer (ARCH §6.12) |
 | P53 | What is your real Kaggle quota, and is "T4 ×2" offered? | Kaggle settings and the accelerator menu | Use "GPU T4"; spread the sessions across weeks |
 | P54 | What are the current Prometheus and Grafana versions? | Their download pages, at Phase 13 | Use the current ones; write the versions into `run.sh` |
@@ -1044,10 +1007,10 @@ call is slow (compilation, cached in `~/.triton/cache`); illegal memory access (
    non-torch, budget, blocks, max tokens).
 4. **CUDA graphs** exactly as ARCH §6.10.2, for pure-decode steps only.
 5. Profile again; record the GPU-busy percentage and the decode tokens/s gain.
-6. **`benchmarks/datasets.py`**: ShareGPT, synthetic, prefill and (in Phase 9) RAG loaders, as in ARCH §10.2.
+6. **`benchmarks/datasets.py`**: ShareGPT, synthetic and prefill loaders, as in ARCH §10.2.
    Each returns `(prompt_text_with_template, max_tokens, ignore_eos)` items; seed 0.
 7. **`benchmarks/serve_bench.py`**:
-   - Args: `--base-url --model --tokenizer PATH --dataset sharegpt|synthetic|prefill|rag --num-prompts 500
+   - Args: `--base-url --model --tokenizer PATH --dataset sharegpt|synthetic|prefill --num-prompts 500
      --mode concurrency|rate|ramp|profile --concurrency 1,4,16,32,64 --rate R --ramp 0.5,1,2,4,8,12,16
      --profile "120:0.5,120:4,120:0.5" --step-seconds 60 --ignore-eos --seed 0 --warmup 10 --repeat 3
      --label TEXT --out benchmarks/results --gpu-log`.
@@ -1091,54 +1054,20 @@ rows without slot −1; T4 throttling (warm up, repeat 3×, check the GPU log).
 
 ---
 
-## Phase 9 — Prefix caching and the RAG workload (week 7)
+## Phase 9 — Prefix caching (week 7)
 
-**Goal:** reuse the KV of repeated prefixes and measure it on real RAG prompts.
+**Goal:** reuse the KV of repeated prefixes and measure the hit rate.
 **Read first:** ARCH §6.5, §6.6.
 
 **Files:** `turingserve/kv/prefix_cache.py`, allocator eviction, scheduler hooks,
-`tests/unit/test_prefix_cache.py`, `tests/correctness/test_prefix_cache_equivalence.py`,
-the RAG loader in `benchmarks/datasets.py`, and **in the RAG repo**: `scripts/dump_llm_prompts.py`.
+`tests/unit/test_prefix_cache.py`, `tests/correctness/test_prefix_cache_equivalence.py`.
 
 **Steps**
 1. Implement the prefix cache exactly as ARCH §6.6, plus eviction in the allocator. Report
    `usage.prompt_tokens_details.cached_tokens` and the prefix-cache metrics.
-2. **Capture the real RAG prompts** (Windows, in `D:\Rag`). Create `scripts\dump_llm_prompts.py`:
-```python
-"""Record every prompt the RAG pipeline would send to the LLM, without calling an LLM."""
-import json
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-import src.generator as generator          # generator.py did `from src.llm import generate`
-from src import eval as rag_eval
-from src.llm import LLMResult
-
-records = []
-
-def recording_generate(prompt, system=None, schema=None):
-    records.append({"system": system, "prompt": prompt, "uses_schema": schema is not None})
-    return LLMResult(text="This is a placeholder answer. [1]", input_tokens=0, output_tokens=0, latency_s=0.0)
-
-generator.generate = recording_generate     # patch the name generator.py actually calls
-
-for path in ["eval/questions.json", "eval/heldout_questions.json"]:
-    rag_eval.run_config("router", rag_eval.load_questions(Path(path)))
-
-unique = list({json.dumps(r, sort_keys=True): r for r in records}.values())
-Path("eval/llm_prompts.jsonl").write_text("\n".join(json.dumps(r) for r in unique), encoding="utf-8")
-print(f"wrote {len(unique)} prompts")
-```
-   Run `python scripts\dump_llm_prompts.py` from `D:\Rag`. If `run_config` or `load_questions` has changed,
-   read `src/eval.py: main()` and call what it calls. Copy `eval/llm_prompts.jsonl` to
-   `~/code/turingserve/benchmarks/data/rag_prompts.jsonl`. **That folder is git-ignored on purpose:** the
-   prompts contain text from arXiv papers, so do not publish them. Document how to regenerate the file.
-3. RAG loader: JSONL → messages (system if present + user) → chat template → prompt text; greedy;
-   `max_tokens` 512; natural stopping (no `ignore_eos`).
-4. Benchmark (laptop 0.5B is fine for relative numbers; T4 for the report): RAG with concurrency 1 and 4,
-   prefix caching on vs off → TTFT p50/p90 and hit rate. ShareGPT on vs off → no regression.
+2. Benchmark (laptop 0.5B is fine for relative numbers; T4 for the report): prompts that share a long prefix
+   (for example the same system prompt) with concurrency 1 and 4, prefix caching on vs off → TTFT p50/p90 and
+   hit rate. ShareGPT on vs off → no regression.
 
 **Tests**
 | Test | Pass condition |
@@ -1149,7 +1078,7 @@ print(f"wrote {len(unique)} prompts")
 | Eviction property test (small num_blocks, random workload) | A block with ref > 0 is never evictable; evicted hashes are removed from the map; running sequences are unaffected |
 | Preemption + cache | A re-admitted sequence hits its own earlier blocks |
 
-**Done when:** tests pass; the RAG TTFT improvement and hit rate are recorded.
+**Done when:** tests pass; the TTFT improvement and hit rate are recorded.
 
 ---
 
@@ -1209,7 +1138,7 @@ lm_eval --model local-chat-completions \
 3. `spec_decoder.py`: `should_run(plan)` and `step(plan)` for n-gram (verify only) first, then the draft
    model (`draft.py`: second model, its own KV tensor, the target's block tables, catch-up). The memory
    profiler counts the draft weights and the draft KV.
-4. Measure (Kaggle T4, 1.5B target, 0.5B draft): batch 1, 4, 8, 16 × workloads {ShareGPT, RAG} × methods
+4. Measure (Kaggle T4, 1.5B target, 0.5B draft): batch 1, 4, 8, 16 on ShareGPT × methods
    {none, ngram k = 2/4/6, draft k = 2/4/6} → tokens/s per user, TPOT p50 and acceptance rate.
 
 **Tests**
@@ -1354,8 +1283,7 @@ providers:
    length `max_model_len − 1`; a burst of 200 simultaneous requests; `max_tokens=1`; empty prompts; invalid
    parameters; Hindi/emoji-heavy prompts; stop strings that match immediately.
    **Pass:** no crash; every error is the 4xx defined in ARCH §6.1; afterwards `/debug/state` shows a clean state.
-4. **Full matrix** (Kaggle, 2–3 sessions): every engine × {ShareGPT concurrency sweep, synthetic, prefill
-   2k/4k/8k, RAG}; the ablation table (ARCH §10.8, TuringServe only); INT8 and speculation results.
+4. **Full matrix** (Kaggle, 2–3 sessions): every engine × {ShareGPT concurrency sweep, synthetic, prefill 2k/4k/8k}; the ablation table (ARCH §10.8, TuringServe only); INT8 and speculation results.
 5. **`make_report.py` final** → `REPORT.md`: environment table, main chart, prefill table next to vLLM
    issue #60821, ablations, quality, Autopilot chart, limitations.
 
@@ -1363,63 +1291,10 @@ providers:
 
 ---
 
-## Phase 15 — RAG integration, documentation, release (week 12) → Milestone M6 / v1.0
+## Phase 15 — Documentation and release (week 12) → Milestone M6 / v1.0
 
-**Goal:** your RAG app runs on TuringServe, and the project is published.
+**Goal:** the project is published.
 
-### A. Changes in the RAG repo (`D:\Rag`, Windows; follow its DECISIONS.md style)
-1. `src/config.py`: add `LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:8000/v1")` and
-   `LLM_REPEAT_PENALTY` (a float from the env var, or `None` when it is unset).
-2. `src/llm.py`: `generate()` dispatches `"ollama"` → the existing function and `"openai_compat"` → a new
-   `_generate_openai_compat(prompt, system, schema)` that uses **only `urllib.request` and `json`** (standard
-   library, so the RAG spec's "one LLM SDK" rule still holds):
-   - if `schema` is not None → raise `NotImplementedError("structured output (PROMPT_VERSION=v3) is not supported by the openai_compat provider")`;
-   - POST `{LLM_BASE_URL}/chat/completions` with `model`, `messages`, `max_tokens=LLM_MAX_TOKENS`,
-     `temperature=LLM_TEMPERATURE`, and `repetition_penalty` when `LLM_REPEAT_PENALTY` is set; 300 s timeout;
-     retry once (like the Ollama path); return `LLMResult(text, usage.prompt_tokens, usage.completion_tokens, latency_s)`.
-   - The Ollama path: add `"repeat_penalty": LLM_REPEAT_PENALTY` to `options` when it is set. Update the module docstring.
-3. `tests/test_llm.py`: a test that monkeypatches `urllib.request.urlopen` and checks the payload and the
-   `LLMResult` mapping; a test that `schema` raises `NotImplementedError`.
-4. A DECISIONS.md entry. `pytest` passes in the RAG repo.
-
-### B. Model and memory (laptop)
-Both backends use **Qwen2.5-1.5B-Instruct** for the comparison.
-- **Ollama:** look at https://ollama.com/library/qwen2.5/tags for `1.5b-instruct-fp16` and `1.5b-instruct-q8_0`,
-  and `ollama pull` the one you need. If the tag does not exist, download the GGUF from
-  `bartowski/Qwen2.5-1.5B-Instruct-GGUF` and create it with a Modelfile (`FROM ./<file>.gguf`, then
-  `ollama create qwen2.5-1.5b-f16 -f Modelfile`).
-- **TuringServe** (WSL), fp16 first:
-  `turingserve serve --model $TS_MODEL_15 --served-model-name qwen2.5-1.5b --max-model-len 8192 --gpu-memory-utilization 0.95 --max-num-seqs 4 --max-num-batched-tokens 1024`.
-  If it stops with the "not enough GPU memory" message, add `--quantization int8` and use Ollama's
-  `q8_0` model for the comparison instead of fp16.
-
-### C. Runs (only one backend on the GPU at a time)
-```powershell
-# 1) Ollama (PowerShell, in D:\Rag)
-$env:LLM_PROVIDER="ollama"; $env:LLM_MODEL="qwen2.5:1.5b-instruct-fp16"; $env:LLM_REPEAT_PENALTY="1.0"
-python -m src.eval --questions eval/heldout_questions.json --configs router
-New-Item -ItemType Directory -Force eval\backend_compare | Out-Null
-Move-Item eval\results_heldout_questions_router.md eval\backend_compare\ollama_results.md
-Move-Item eval\to_grade_heldout_questions_router.csv eval\backend_compare\ollama_to_grade.csv
-ollama stop qwen2.5:1.5b-instruct-fp16
-
-# 2) TuringServe (server running in WSL, see B)
-$env:LLM_PROVIDER="openai_compat"; $env:LLM_MODEL="qwen2.5-1.5b"; $env:LLM_BASE_URL="http://localhost:8000/v1"; $env:LLM_REPEAT_PENALTY="1.0"
-python -m src.eval --questions eval/heldout_questions.json --configs router
-Move-Item eval\results_heldout_questions_router.md eval\backend_compare\turingserve_results.md
-Move-Item eval\to_grade_heldout_questions_router.csv eval\backend_compare\turingserve_to_grade.csv
-
-# 3) Restart TuringServe with --spec-method ngram, run the same eval, save as turingserve_ngram_*
-```
-- Use the config name the README's held-out result used (`CONFIGS` in `src/eval.py`; the help text's example is `router`).
-- Grade the to-grade CSVs by hand with the same rubric as before (same person, same day).
-- `benchmarks/compare_rag_answers.py` (TuringServe repo): read two to-grade CSVs, report the exact-match
-  rate after normalizing whitespace, and list the differing questions.
-- **Expected:** correct/refused counts within ±2 of each other (the engines' fp16 numerics differ). A larger
-  gap → inspect the differing answers first, then the debug ladder.
-- Latency: mean and p95 from the results files; TTFT and prefix hit rate from TuringServe's metrics.
-
-### D. Documentation and release
 1. **README** order: one-line pitch → demo GIF → architecture diagram → headline results (chart, prefill
    table, ablations) → how it works (one paragraph per component) → correctness and testing → how to run →
    limitations and future work.
@@ -1433,10 +1308,9 @@ Move-Item eval\to_grade_heldout_questions_router.csv eval\backend_compare\turing
      Y s vs 10.2 s** for vLLM's default T4 backend; verified by 100+ randomized tests in CI."
    - "Designed a rule-based self-tuning controller that adapts chunk size and speculative decoding to load,
      improving goodput by **Z%** over the best fixed configuration."
-   - "Served my RAG system on it with prefix caching and prompt-lookup decoding: **W% lower TTFT**, same answer accuracy."
 5. `git tag v1.0 && git push --tags`; create a GitHub release with the summary and the report link.
 
-**Done when:** RAG comparison done and documented; README, report, blog and resume bullets published; `v1.0` tagged.
+**Done when:** README, report, blog and resume bullets published; `v1.0` tagged.
 
 ---
 
@@ -1449,8 +1323,7 @@ Follow ARCH §13 in order. First item, **Llama 3.2 support**:
    `smooth = (original_max / wavelen − low_freq_factor) / (high_freq_factor − low_freq_factor)`:
    `(1 − smooth) · inv_freq / factor + smooth · inv_freq`.
 3. Repeat the Phase 1 golden tests for `meta-llama/Llama-3.2-1B-Instruct` (accept the license on Hugging Face).
-4. Serve `Llama-3.2-3B-Instruct` on the T4 and connect the RAG through a tunnel
-   (`cloudflared tunnel --url http://localhost:8000` in the Kaggle notebook).
+4. Serve `Llama-3.2-3B-Instruct` on the T4.
 
 ---
 
@@ -1514,7 +1387,6 @@ Follow ARCH §13 in order. First item, **Llama 3.2 support**:
 - [ ] `benchmarks/REPORT.md` generated from committed result JSON files
 - [ ] Ablation table, quality table (perplexity, GSM8K), Autopilot chart, dashboard screenshot
 - [ ] `docs/design/*.md` for every component; `docs/lab_notes.md` complete
-- [ ] RAG backend comparison documented in both repos
 - [ ] Blog post published; resume bullets with real numbers
 
 ---

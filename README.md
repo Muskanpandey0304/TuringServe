@@ -46,7 +46,7 @@ INT8 weights (W8A16) cost +0.16% WikiText-2 perplexity and no measurable GSM8K c
 ## Architecture
 
 ```
- Clients (curl, OpenAI SDK, RAG app, lm-eval, benchmark client)
+ Clients (curl, OpenAI SDK, applications, lm-eval, benchmark client)
       | HTTP + SSE
       v
  API SERVER (FastAPI, 1 uvicorn worker)   /v1/chat/completions /v1/completions /v1/models /health /metrics
