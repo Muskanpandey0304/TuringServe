@@ -914,7 +914,7 @@ turingserve/                                 (git repo, inside WSL at ~/code/tur
 │                compare_rag_answers.py · micro/{decode_speed,bench_*}.py · baselines/hf_server.py ·
 │                results/*.json · figures/*.png · data/ (git-ignored) · REPORT.md
 ├── deploy/observability/  prometheus.yml · grafana/provisioning/{datasources,dashboards}/*.yaml · dashboard.json · run.sh
-├── notebooks/kaggle/  00_setup · 10_turingserve_bench · 20_vllm_latest · 21_vllm_v0 · 22_llamacpp · 30_quality (.ipynb)
+├── notebooks/kaggle/  00_setup · 10_turingserve_bench · 20_vllm_latest · 22_llamacpp · 30_quality (.ipynb)
 └── .github/workflows/ci.yml
 ```
 
@@ -987,7 +987,6 @@ unsupported by the interpreter, mark that test `gpu`).
 | HF sequential | Kaggle T4 | `benchmarks/baselines/hf_server.py`: one request at a time, `generate()` + streamer |
 | HF static batch (offline only) | Kaggle T4 | batch 16, left padding, `generate()` |
 | vLLM latest | Kaggle T4, separate notebook | `--dtype half --max-model-len 4096 --gpu-memory-utilization 0.85`; record the auto-selected attention backend |
-| vLLM 0.6.x (V0, xformers) | Kaggle T4, separate notebook | Optional; only if it installs. Older engine that uses tensor-core attention on Turing |
 | llama.cpp `llama-server` | Kaggle T4, separate notebook | CUDA build for sm_75, f16 GGUF of the same model, `-ngl 99 -np 16 -c 65536`, flash attention on |
 
 ### 10.2 Workloads
@@ -1141,7 +1140,7 @@ not verified yet, is written in the Build Guide section **"Problems found in the
 | # | Found | Change |
 |---|---|---|
 | 1 | Triton ≥ 3.3 emits no tensor-core MMA on sm < 80; vLLM's default T4 attention is 9× slower at 8k prefill [V] | Pin Triton 3.2; MMA probe in Phase 0 (PTX must contain `mma.sync`); fallback torch 2.5.1/Triton 3.1.0; this is now the headline differentiator |
-| 2 | Current vLLM *does* run on a T4 (TRITON_ATTN/FLEX) [V] | Baselines: vLLM latest + optional vLLM 0.6.x + llama.cpp + HF |
+| 2 | Current vLLM *does* run on a T4 (TRITON_ATTN/FLEX) [V] | Baselines: vLLM latest + llama.cpp + HF |
 | 3 | Your WSL is Ubuntu 26.04 with Python 3.14 [M]; torch 2.6 has no 3.14 wheels | uv-managed Python 3.12 |
 | 4 | C: has 16.5 GB free [M] | Move WSL to D: (`wsl --manage --move`, with export/import fallback) |
 | 5 | Ollama holds 2.3 GB of the 4 GB GPU [M] | Unload step every session; startup error mentions Ollama |

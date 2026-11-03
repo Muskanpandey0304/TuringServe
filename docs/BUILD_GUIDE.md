@@ -246,7 +246,6 @@ a source (ARCH §15), **[S]** engineering judgement.
 | P45 | Does the GTX 1650 run tensor-core instructions at all, and how fast? | MMA probe correctness and TFLOPS on the laptop | The laptop is for correctness only anyway; if `tl.dot` fails there, run those kernel tests only on Kaggle |
 | P46 | Is Qwen2.5 safe in fp16? | Day-1 gate (§0.11, K.4) | SmolLM2 family |
 | P47 | Do the Ollama tags `qwen2.5:1.5b-instruct-fp16` / `qwen2.5:1.5b-instruct-q8_0` exist? | https://ollama.com/library/qwen2.5/tags | Create the model from the bartowski GGUF with a Modelfile (Phase 15 B) |
-| P48 | Does vLLM 0.6.6.post1 still install on Kaggle? | Notebook 21 (K.5) | Skip this optional baseline; note it in `docs/baselines.md` |
 | P49 | Is the f16 file in `bartowski/Qwen2.5-1.5B-Instruct-GGUF` named `*f16.gguf`? | `--include "*f16.gguf"`, then `ls` (K.5) | Convert with llama.cpp's `convert_hf_to_gguf.py --outtype f16` |
 | P50 | Are the lm-eval flag names unchanged? | `lm_eval --help` | Use the current names; note them in the lab notes |
 | P51 | Is `router` the config behind the README's held-out result? | `CONFIGS` in `src/eval.py` and the README | Use the config the README names |
@@ -660,9 +659,6 @@ print(requests.post("http://localhost:8001/v1/completions",
 !grep -i -E "backend|attention" /kaggle/working/vllm.log | head -20
 ```
 Record: vLLM version, torch version, the attention backend it chose, works yes/no.
-
-**`21_vllm_v0.ipynb`** (optional): the same with `pip install -q vllm==0.6.6.post1`. If the install fails,
-record the error and skip this baseline.
 
 **`22_llamacpp.ipynb`**
 ```

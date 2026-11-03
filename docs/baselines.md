@@ -6,6 +6,5 @@ Each baseline runs in its OWN Kaggle notebook (each installs its own torch). Fil
 | Engine | Version | Install command | Launch command | Attention backend | Works? | Notes |
 |---|---|---|---|---|---|---|
 | vLLM latest | 0.33.0 (torch 2.14.0+cu130) | `pip install -q vllm` | `vllm serve ... --dtype half --max-model-len 4096 --gpu-memory-utilization 0.85` | TRITON_ATTN | Yes (T4, 0 errors) | measured 2026-11-03, see lab_notes.md; cold prefill (prefix caching off) re-measured: 8000 tokens 11.1 s vs TuringServe 1.7 s, see lab_notes.md |
-| vLLM 0.6.x (V0) | not run | `pip install -q vllm==0.6.6.post1` | same | | skipped | optional baseline, not measured; its notebook stub was removed |
 | llama.cpp | | cmake `-DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75` | `llama-server -ngl 99 -np 16 -c 65536 -fa on` | | | f16 GGUF |
 | Hugging Face (sequential) | | - | `python -m benchmarks.baselines.hf_server` | sdpa | | one request at a time |

@@ -3,8 +3,7 @@
   python -m benchmarks.make_report [--results benchmarks/results] [--out benchmarks/REPORT.md]
 
 Result files are grouped by their label (see classify): the main ShareGPT comparison, cold prefill, speculative
-decoding, Autopilot, ramp and the Hugging Face smoke run each get their own section. Files measured with prefix
-caching on (label ending in "-prefill") are listed as excluded, not tabulated. Soak and chaos output is read from
+decoding, Autopilot, ramp and the Hugging Face smoke run each get their own section. Soak and chaos output is read from
 <results>/soak_chaos/, the Autopilot decision log from <results>/autopilot/, quality files from <results>/quality/.
 """
 
@@ -49,7 +48,7 @@ def classify(r):
     label = r["meta"].get("label") or ""
     ds = r["meta"].get("dataset")
     if ds == "prefill":
-        return "prefill_cold" if label.endswith("prefill-cold") else "prefill_cached"
+        return "prefill_cold" if label.endswith("prefill-cold") else "other"
     if label.startswith("spec-"):
         return "spec"
     if label.startswith("autopilot-"):
@@ -210,13 +209,6 @@ def main():
             ax.legend(fontsize=8)
             save_fig(fig, "prefill_cold_ttft.png")
             L += ["![cold prefill TTFT](figures/prefill_cold_ttft.png)", ""]
-    cached = groups.get("prefill_cached", [])
-    if cached:
-        L += ["### Excluded: prefill files measured with prefix caching on", "",
-              "These replay the same 15 prompts with prefix caching enabled, so their TTFT is a cache hit and not prefill "
-              "speed. They are kept for the record and are not used above: "
-              + ", ".join(f"`{r['_file']}`" for r in cached) + ".", ""]
-
     # ---- speculative decoding
     spec = groups.get("spec", [])
     if spec:
