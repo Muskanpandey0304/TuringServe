@@ -22,7 +22,7 @@ Everything in the architecture is implemented. What has and has not been verifie
 | Area | State |
 |---|---|
 | Model (Qwen2), loader, paged KV cache, scheduler, engine, sampler, detokenizer, stop strings, API, metrics, prefix cache, speculative decoding (n-gram + draft), INT8 reference path, Autopilot controller, tuner cache | Implemented; **covered by CPU tests that pass** (tiny Qwen2 vs Hugging Face: logits <= 1e-4, layer-wise, greedy tokens identical) |
-| Triton kernels (rmsnorm, silu_mul, rope, kv_write, decode v1/v2/v3, prefill, w8a16), tuner measurement, CUDA graphs, memory profiler | Implemented to the spec; **GPU tests are written (`pytest -m gpu`) but have not been run yet** - they need a CUDA machine with torch 2.6 / Triton 3.2 |
+| Triton kernels (rmsnorm, silu_mul, rope, kv_write, decode v1/v2/v3, prefill, w8a16), tuner measurement, CUDA graphs, memory profiler | Implemented to the spec; **GPU tests pass on a Kaggle T4** (`pytest -m gpu`: 189 passed, 24 skipped by design; torch 2.6.0+cu124, Triton 3.2.0; log in `benchmarks/results/gpu_tests/`) |
 | Benchmarks, quality evals, Kaggle notebooks | **Measured on a Kaggle T4** (see below and `benchmarks/REPORT.md`): ShareGPT sweep against vLLM, cold prefill against vLLM, speculative decoding, Autopilot, INT8 quality. Chaos test and 2-hour soak on the T4 pass (see the report) |
 
 No performance number in this repository is claimed until it appears in `benchmarks/REPORT.md`,

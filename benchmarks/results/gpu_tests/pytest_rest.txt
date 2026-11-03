@@ -1,0 +1,32 @@
+........................................................................ [ 62%]
+...........................................                              [100%]
+=============================== warnings summary ===============================
+tests/correctness/test_paged_engine.py::test_engine_greedy_equals_hf_with_chunking_and_batching
+  /usr/local/lib/python3.13/dist-packages/matplotlib/_fontconfig_pattern.py:64: PyparsingDeprecationWarning: 'oneOf' deprecated - use 'one_of'
+    prop = Group((name + Suppress("=") + comma_separated(value)) | oneOf(_CONSTANTS))
+
+tests/correctness/test_paged_engine.py::test_engine_greedy_equals_hf_with_chunking_and_batching
+tests/correctness/test_paged_engine.py::test_engine_greedy_equals_hf_with_chunking_and_batching
+tests/correctness/test_paged_engine.py::test_engine_greedy_equals_hf_with_chunking_and_batching
+tests/correctness/test_paged_engine.py::test_engine_greedy_equals_hf_with_chunking_and_batching
+tests/correctness/test_paged_engine.py::test_engine_greedy_equals_hf_with_chunking_and_batching
+tests/correctness/test_paged_engine.py::test_engine_greedy_equals_hf_with_chunking_and_batching
+  /usr/local/lib/python3.13/dist-packages/matplotlib/_fontconfig_pattern.py:85: PyparsingDeprecationWarning: 'parseString' deprecated - use 'parse_string'
+    parse = parser.parseString(pattern)
+
+tests/correctness/test_paged_engine.py::test_engine_greedy_equals_hf_with_chunking_and_batching
+tests/correctness/test_paged_engine.py::test_engine_greedy_equals_hf_with_chunking_and_batching
+tests/correctness/test_paged_engine.py::test_engine_greedy_equals_hf_with_chunking_and_batching
+tests/correctness/test_paged_engine.py::test_engine_greedy_equals_hf_with_chunking_and_batching
+tests/correctness/test_paged_engine.py::test_engine_greedy_equals_hf_with_chunking_and_batching
+tests/correctness/test_paged_engine.py::test_engine_greedy_equals_hf_with_chunking_and_batching
+  /usr/local/lib/python3.13/dist-packages/matplotlib/_fontconfig_pattern.py:89: PyparsingDeprecationWarning: 'resetCache' deprecated - use 'reset_cache'
+    parser.resetCache()
+
+tests/correctness/test_paged_engine.py::test_engine_greedy_equals_hf_with_chunking_and_batching
+  /usr/local/lib/python3.13/dist-packages/matplotlib/_mathtext.py:45: PyparsingDeprecationWarning: 'enablePackrat' deprecated - use 'enable_packrat'
+    ParserElement.enablePackrat()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+--------- generated xml file: /kaggle/working/results/pytest_rest.xml ----------
+115 passed, 213 deselected, 14 warnings in 56.55s
