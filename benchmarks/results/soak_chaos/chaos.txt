@@ -1,0 +1,10 @@
+disconnects        50 requests  statuses: {'200': 50}
+near_max_len        3 requests  statuses: {'200': 3}
+burst_200         200 requests  statuses: {'200': 200}
+max_tokens_1       10 requests  statuses: {'200': 10}
+empty_prompt        1 requests  statuses: {'400': 1}
+invalid_params      3 requests  statuses: {'400': 3}
+unicode            10 requests  statuses: {'200': 10}
+immediate_stop      5 requests  statuses: {'200': 5}
+final state: {'num_running': 0, 'num_waiting': 0, 'num_free_blocks': 5561, 'num_cached_blocks': 13916, 'num_total_blocks': 19478, 'num_requests_tracked': 0} health: 200
+PASS

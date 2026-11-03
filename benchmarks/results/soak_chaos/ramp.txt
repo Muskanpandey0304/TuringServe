@@ -1,0 +1,8 @@
+[rate 0.5] rep 1/1: 101.0 tok/s  TTFT p50/p90 0.042/0.092s  TPOT p50/p90 17.0/17.5ms  goodput 100%  errors 0
+[rate 1.0] rep 1/1: 218.0 tok/s  TTFT p50/p90 0.048/0.097s  TPOT p50/p90 17.5/18.8ms  goodput 100%  errors 0
+[rate 2.0] rep 1/1: 410.8 tok/s  TTFT p50/p90 0.049/0.066s  TPOT p50/p90 18.9/20.1ms  goodput 100%  errors 0
+[rate 3.0] rep 1/1: 642.0 tok/s  TTFT p50/p90 0.052/0.067s  TPOT p50/p90 22.7/25.1ms  goodput 100%  errors 0
+[rate 4.0] rep 1/1: 881.5 tok/s  TTFT p50/p90 0.057/0.076s  TPOT p50/p90 25.8/29.8ms  goodput 100%  errors 0
+[rate 6.0] rep 1/1: 1317.1 tok/s  TTFT p50/p90 0.064/0.088s  TPOT p50/p90 31.2/34.9ms  goodput 100%  errors 0
+[rate 8.0] rep 1/1: 1682.2 tok/s  TTFT p50/p90 0.072/0.091s  TPOT p50/p90 37.7/38.7ms  goodput 100%  errors 0
+wrote /kaggle/working/results/2026-11-03_turingserve_sharegpt_t4-1.5b-ramp.json

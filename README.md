@@ -23,7 +23,7 @@ Everything in the architecture is implemented. What has and has not been verifie
 |---|---|
 | Model (Qwen2), loader, paged KV cache, scheduler, engine, sampler, detokenizer, stop strings, API, metrics, prefix cache, speculative decoding (n-gram + draft), INT8 reference path, Autopilot controller, tuner cache | Implemented; **covered by CPU tests that pass** (tiny Qwen2 vs Hugging Face: logits <= 1e-4, layer-wise, greedy tokens identical) |
 | Triton kernels (rmsnorm, silu_mul, rope, kv_write, decode v1/v2/v3, prefill, w8a16), tuner measurement, CUDA graphs, memory profiler | Implemented to the spec; **GPU tests are written (`pytest -m gpu`) but have not been run yet** - they need a CUDA machine with torch 2.6 / Triton 3.2 |
-| Benchmarks, quality evals, Kaggle notebooks | **Measured on a Kaggle T4** (see below and `benchmarks/REPORT.md`): ShareGPT sweep against vLLM, cold prefill against vLLM, speculative decoding, Autopilot, INT8 quality. Soak and chaos on the T4: see the report once its section appears |
+| Benchmarks, quality evals, Kaggle notebooks | **Measured on a Kaggle T4** (see below and `benchmarks/REPORT.md`): ShareGPT sweep against vLLM, cold prefill against vLLM, speculative decoding, Autopilot, INT8 quality. Chaos test and 2-hour soak on the T4 pass (see the report) |
 
 No performance number in this repository is claimed until it appears in `benchmarks/REPORT.md`,
 which is generated only from committed result JSON files.
@@ -36,6 +36,8 @@ which is generated only from committed result JSON files.
 | Cold prefill, 2,048 / 4,096 tokens | 0.30 s / 0.67 s | 0.94 s / 3.20 s | 0.38 s / 0.82 s |
 | ShareGPT output tok/s, 64 concurrent clients | 1,805 | 1,308 | 413 (16 slots) |
 | ShareGPT output tok/s, 1 / 4 concurrent clients | 61.2 / 232.2 | 59.1 / 229.7 | 55.0 / 82.2 |
+
+Robustness (T4, 1.5B): a 2-hour soak at 5.6 requests per second sent 40,188 requests with zero errors and server memory flat (1,687 to 1,689 MB); the chaos test (client disconnects, a 200-request burst, empty and invalid input, emoji prompts) passed with a clean final state. The ramp reached 8 requests per second (1,682 tok/s) at 100% goodput without saturating.
 
 INT8 weights (W8A16) cost +0.16% WikiText-2 perplexity and no measurable GSM8K change. N-gram speculation helps at low and high concurrency (up to +17%) and is neutral in between; the 0.5B draft model is slower than no speculation everywhere on this workload. Autopilot showed no measurable benefit under the test load. Sample sizes and known limits are in [docs/benchmark_methodology.md](docs/benchmark_methodology.md).
 

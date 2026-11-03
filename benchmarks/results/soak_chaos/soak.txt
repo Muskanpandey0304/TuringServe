@@ -1,0 +1,2 @@
+requests {'sent': 40188, 'ok': 40188, 'e4xx': 0, 'e5xx': 0, 'exc': 0}  RSS growth after 10 min: +0.1%  final {'num_running': 0, 'num_waiting': 0, 'num_free_blocks': 5, 'num_cached_blocks': 19472, 'num_total_blocks': 19478, 'num_requests_tracked': 0}
+PASS

@@ -282,8 +282,11 @@ def main():
                          fmt(m["ttft"]["p90"] * 1000, 0), fmt(m["tpot"]["p50"] * 1000, 1)])
             if m["goodput_fraction"] >= 0.9 and m["errors"] == 0:
                 ok.append(float(run["level"]))
-        L += [table(rows, ["rate (req/s)", "goodput", "errors", "out tok/s", "TTFT p90 (ms)", "TPOT p50 (ms)"]), "",
-              f"Highest rate with >= 90% goodput and no errors: **{max(ok) if ok else 'none'} req/s**.", ""]
+        top = max(float(run["level"]) for run in r["runs"])
+        verdict = (f"Every tested rate kept >= 90% goodput with no errors, so the server was not saturated at the highest rate "
+                   f"tested (**{top:g} req/s**); its capacity is at least that." if ok and max(ok) == top else
+                   f"Highest rate with >= 90% goodput and no errors: **{max(ok) if ok else 'none'} req/s**.")
+        L += [table(rows, ["rate (req/s)", "goodput", "errors", "out tok/s", "TTFT p90 (ms)", "TPOT p50 (ms)"]), "", verdict, ""]
 
     # ---- baselines smoke
     hf = groups.get("hf_smoke", [])
