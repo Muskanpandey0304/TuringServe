@@ -227,3 +227,13 @@ configuration. Reason: ['compute capability not supported']` (log: benchmarks/re
 JSON form fails the same way). The VLLM_ATTENTION_BACKEND environment variable is ignored by 0.33.0 ("Unknown vLLM environment variable").
 So the 1.1 s FlashInfer prefill reported in vLLM issue #60821 cannot be reproduced on a T4 with this version: vLLM's fastest available path on
 sm_75 is the Triton attention backend measured above. FLEX_ATTENTION is accepted by the server and is measured separately.
+
+### 2026-11-03 (Kaggle, Tesla T4) - chaos, ramp and soak
+TuringServe at tag m3-rc, Qwen2.5-1.5B fp16, one T4, `--debug-endpoints` (benchmarks/results/soak_chaos/, ramp in benchmarks/results/*_ramp.json).
+Chaos: PASS. 20% client disconnects (50 requests), 3 near-max-length prompts, a 200-request burst, max_tokens=1, empty prompt (400), invalid
+parameters (400 x3), emoji/Hindi prompts, immediate stop strings: no crash, every error a 400, final state clean (5,561 free + 13,916 cached =
+19,477 of 19,478 blocks, 0 requests tracked, /health 200).
+Ramp (ShareGPT, 60 s per rate): 0.5 / 1 / 2 / 3 / 4 / 6 / 8 req/s all at 100% goodput with 0 errors; 8 req/s gives 1,682 tok/s with TTFT p90 91 ms and TPOT
+p50 37.7 ms. The server was not saturated at the highest rate tested, so its capacity is at least 8 req/s.
+Soak: PASS. Poisson load at 5.6 req/s (70% of the highest tested rate) for 2.00 h: 40,188 requests, 40,188 ok, 0 4xx, 0 5xx, 0 client exceptions; server RSS
+1,687 MB at minute 10 and 1,689 MB at the end (+0.14%, limit +5%); at the end 0 requests tracked and 5 free + 19,472 cached = 19,477 of 19,478 blocks.
