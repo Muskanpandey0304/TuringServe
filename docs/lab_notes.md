@@ -98,9 +98,9 @@ so a kernel death does not require a full re-download; also split the combined c
 script so a crash doesn't lose results from steps that already finished.
 
 ### 2026-11-02 (Kaggle, Tesla T4, pinned stack) - first real serve_bench results, TuringServe vs HF naive baseline
-Commit under test: 349b3f3 (tag m3-rc). Qwen2.5-1.5B-Instruct fp16, ShareGPT 500 prompts, 3 reps per level.
+Commit under test: 349b3f3 (now b6dc052; its engine code is identical to tag m3-rc, which only adds notes). Qwen2.5-1.5B-Instruct fp16, ShareGPT 500 prompts, 3 reps per level.
 TuringServe concurrency sweep (benchmarks/results/2026-11-02_turingserve_sharegpt_t4-1.5b.json):
-c=1 ~61 tok/s (TPOT 16.3 ms), c=4 ~232, c=16 ~800, c=32 ~1175, c=64 ~1805 tok/s (TPOT 31.5 ms), 100% goodput, 0 errors.
+c=1 ~61 tok/s (TPOT 16.3 ms), c=4 ~232, c=16 ~800, c=32 ~1176, c=64 ~1805 tok/s (TPOT 31.5 ms), 100% goodput, 0 errors.
 HF baseline (benchmarks/baselines/hf_server.py, one request at a time under a global lock): only a 10-prompt,
 1-rep, c=1 smoke run completed: 27.8 tok/s, TTFT p50/p90 0.084/0.128 s, TPOT 35.5/35.9 ms, 0 errors
 (...hf_baseline_t4-1.5b_smoke.json). Small sample by design limits; the server serializes requests so concurrency
@@ -125,8 +125,7 @@ Commit under test: m3-rc. Qwen2.5-1.5B fp16, ShareGPT 40 prompts, 2 reps, concur
 | draft k2 | 38.1 | 134.1 | 219.6 | 420.1 |
 | draft k4 | 32.6 | 112.0 | 183.1 | 384.7 |
 | draft k6 | 27.5 | 97.9 | 153.2 | 357.2 |
-Findings: n-gram helps at c=1 (+4% to +15%) and c=16 (+10% to +17%) but is neutral to slightly negative at c=4/8
-(-1% to -10%). The 0.5B draft model is a net loss everywhere (-20% to -57% vs none; worse as k grows): on ShareGPT chat
+Findings: n-gram helps at c=1 (+4% to +15%) and c=16 (+10% to +17%) but is neutral to slightly negative at c=4/8 (-1% to -11%). The 0.5B draft model is a net loss everywhere (-20% to -57% vs none; worse as k grows): on ShareGPT chat
 text the draft step costs more than the accepted tokens save on a T4. Autopilot should therefore pick between none
 and ngram only. Server logs downloaded earlier (server_spec_*.log, 22:41) were from the smoke test, not the sweep.
 
@@ -141,8 +140,7 @@ decision lines in benchmarks/results/autopilot/).
 | autopilot full + ngram | 444.2 | 55.9 / 72.3 | 25.8 |
 Finding: no measurable difference. The load is arrival-limited (4 req/s peak never saturates the T4: KV usage <4%,
 no preemptions), so tok/s is set by the arrival rate and cannot separate the configurations. Autopilot made 51
-decisions, almost all rule R4 toggling spec_on/spec_k (acceptance EMA only 0.02-0.48 on ShareGPT, so it correctly backs
-off ngram) and a few R3 spec_skip, but it flaps spec_on off/on repeatedly instead of settling. A saturating profile
+decisions, almost all rule R4 toggling spec_on/spec_k (acceptance EMA mostly 0.1-0.4 on ShareGPT with one brief spike to 1.0, so it correctly backs off ngram) and a few R3 spec_skip, but it flaps spec_on off/on repeatedly instead of settling. A saturating profile
 (e.g. 8-16 req/s) or a repeat-heavy workload would be needed to show an Autopilot benefit; not claimed here.
 Process note: the first run of the cell wrote all three results to one file named {name}.json because a ! line inside a
 for loop does not interpolate variables; the full run was kept by renaming and the other two were rerun via subprocess.

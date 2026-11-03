@@ -121,7 +121,8 @@ def main():
                 ["engine", "GPU / driver", "commit", "date", "result files"]),
           "", "All numbers are from one Kaggle Tesla T4 (sm_75, 15 GiB), Qwen2.5-1.5B-Instruct fp16 unless stated. "
           "TuringServe runs use torch 2.6.0+cu124 / Triton 3.2.0; the vLLM runs use vLLM 0.33.0 / torch 2.14.0+cu130 "
-          "with its TRITON_ATTN backend. Commit hashes in the older files predate a history rewrite (same content; "
+          "with its default TRITON_ATTN backend (the FLEX_ATTENTION columns use that backend instead); llama.cpp is "
+          "0.8.0-dev (commit 8fc0376) with an f16 GGUF. Commit hashes in the older files predate a history rewrite (same content; "
           "see the methodology document).", ""]
 
     # ---- main ShareGPT comparison
