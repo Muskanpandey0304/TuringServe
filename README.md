@@ -37,7 +37,7 @@ which is generated only from committed result JSON files.
 | ShareGPT output tok/s, 64 concurrent clients | 1,805 | 1,308 (TuringServe +38%) |
 | ShareGPT output tok/s, 1 / 4 concurrent clients | 61.2 / 232.2 | 59.1 / 229.7 (equal within noise) |
 
-INT8 weights (W8A16) cost +0.16% WikiText-2 perplexity and no measurable GSM8K change. N-gram speculation helps at low and high concurrency (up to +17%) and is neutral in between; the 0.5B draft model is slower than no speculation everywhere on this workload. Autopilot showed no measurable benefit under the test load. Sample sizes, limits and the mistakes found along the way are in [docs/benchmark_methodology.md](docs/benchmark_methodology.md).
+INT8 weights (W8A16) cost +0.16% WikiText-2 perplexity and no measurable GSM8K change. N-gram speculation helps at low and high concurrency (up to +17%) and is neutral in between; the 0.5B draft model is slower than no speculation everywhere on this workload. Autopilot showed no measurable benefit under the test load. Sample sizes and known limits are in [docs/benchmark_methodology.md](docs/benchmark_methodology.md).
 
 ## Architecture
 

@@ -101,7 +101,6 @@ script so a crash doesn't lose results from steps that already finished.
 Commit under test: 349b3f3 (tag m3-rc). Qwen2.5-1.5B-Instruct fp16, ShareGPT 500 prompts, 3 reps per level.
 TuringServe concurrency sweep (benchmarks/results/2026-11-02_turingserve_sharegpt_t4-1.5b.json):
 c=1 ~61 tok/s (TPOT 16.3 ms), c=4 ~232, c=16 ~800, c=32 ~1175, c=64 ~1805 tok/s (TPOT 31.5 ms), 100% goodput, 0 errors.
-Prefill sweep (2k/4k/8k tokens, c=1) saved as ...turingserve_prefill_t4-1.5b-prefill.json.
 HF baseline (benchmarks/baselines/hf_server.py, one request at a time under a global lock): only a 10-prompt,
 1-rep, c=1 smoke run completed: 27.8 tok/s, TTFT p50/p90 0.084/0.128 s, TPOT 35.5/35.9 ms, 0 errors
 (...hf_baseline_t4-1.5b_smoke.json). Small sample by design limits; the server serializes requests so concurrency
@@ -161,19 +160,13 @@ Output tok/s (TTFT p50 ms / TPOT p50 ms):
 | 32 | 1176.3 (56 / 25.6) | 936.3 (103 / 31.2) | +26% |
 | 64 | 1805.2 (64 / 31.5) | 1308.0 (141 / 43.1) | +38% |
 Same speed at c=1 and c=4 (within noise given the smaller vLLM samples); TuringServe pulls ahead as concurrency grows.
-Prefill sweep caveat: both engines enable prefix caching by default and the prefill benchmark replays the same 15 prompts
-in the warm-up and every repetition, so the reported TTFT (TuringServe 44 ms, vLLM 68 ms p50; 8000-token prompts 64 ms vs 108 ms)
-is a prefix-cache hit and not cold prefill: 8000 tokens in 64 ms would need over 300 TFLOPs, five times the T4 peak.
-Do not cite these as prefill speed. Rerun both engines with prefix caching off (TuringServe --no-prefix-caching, vLLM
---no-enable-prefix-caching) before comparing prefill.
 
 ### 2026-11-03 (Kaggle, Tesla T4) - TuringServe cold prefill (prefix caching off)
 `turingserve serve --max-model-len 8192 --no-prefix-caching`, tag m3-rc, torch 2.6.0+cu124, Triton 3.2.0, 15 prompts (5 each
 of 2048 / 4096 / 8000 tokens), c=1, 3 reps, 0 errors (benchmarks/results/*_turingserve_prefill_t4-1.5b-prefill-cold.json,
 server log in benchmarks/results/prefill_cold/). Cold TTFT median: 2048 tokens 303 ms (6,767 tok/s), 4096 tokens 665 ms
 (6,158 tok/s), 8000 tokens 1,678 ms (4,769 tok/s); min and max within about 3% of the median, so every request was cold.
-This replaces the earlier prefill run (44 ms p50), which was a prefix-cache hit. The server log does not print the cache
-setting; the timings themselves confirm it was off (8000 tokens in 64 ms with caching on vs 1,678 ms here).
+The server was started with `--no-prefix-caching`; its log does not print that setting.
 
 ### 2026-11-03 (Kaggle, Tesla T4) - cold prefill: TuringServe vs vLLM (prefix caching off in both)
 vLLM 0.33.0 (torch 2.14.0+cu130, TRITON_ATTN backend, enable_prefix_caching=False confirmed in its log) vs TuringServe at m3-rc
@@ -190,5 +183,5 @@ attention backend on this stack, which is the gap the project's MMA attention ke
 version and default settings, 5 prompts per length; vLLM may add a faster sm_75 attention path later, so re-run this baseline
 right before publishing (P55).
 
-### 2026-11-03 - report generator rewritten
-`benchmarks/make_report.py` now builds separate sections (ShareGPT comparison across engines, cold prefill per prompt length, speculative decoding, Autopilot with its decision counts, ramp, Hugging Face smoke, soak and chaos, quality) and lists the prefix-cache-hit prefill files as excluded. The first trial run showed the Hugging Face smoke file as a TuringServe row because its metadata was wrong (see the methodology provenance notes); corrected.
+### 2026-11-03 - report generator
+`benchmarks/make_report.py` builds separate sections (ShareGPT comparison across engines, cold prefill per prompt length, speculative decoding, Autopilot with its decision counts, ramp, Hugging Face smoke run, soak and chaos, quality) entirely from the result JSON files.

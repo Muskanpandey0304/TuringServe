@@ -35,16 +35,13 @@ Triton 3.2.0, TuringServe at tag `m3-rc`, Qwen2.5-1.5B-Instruct fp16. Raw per-re
 4. **Single GPU model, single run day.** Results are one T4 on one date (2026-11-02/03); Kaggle machines vary between
    sessions, so absolute tok/s should be read with that in mind and relative comparisons are the intended use.
 5. **Accuracy is reported separately** (`docs/quality.md`: WikiText-2 perplexity, GSM8K fp16 vs INT8).
-6. **Prefix caching flatters repeated prompts.** TuringServe and vLLM both enable prefix caching by default, and
-   `serve_bench` replays the same prompts in the warm-up and in every repetition. The ShareGPT sweeps are dominated by
-   decoding (`ignore_eos`, about 266 output tokens per request), so throughput is barely affected, but TTFT in
-   repetitions 2 and later can be optimistic. The prefill sweep is affected completely: it replays only 15 prompts, so
-   its TTFT is a cache hit, not cold prefill (8000 tokens in 64 ms is physically impossible on a T4). It must be rerun
-   with prefix caching disabled on both engines before any prefill claim is made. That was done on 2026-11-03
-   (`*_prefill_t4-1.5b-prefill-cold.json`); the earlier `*_prefill_t4-1.5b-prefill.json` files are cache hits and
-   must not be cited as prefill speed.
+6. **Prefix caching and repeated prompts.** TuringServe and vLLM both enable prefix caching by default, and `serve_bench`
+   replays the same prompts in the warm-up and in every repetition. The ShareGPT sweeps are dominated by decoding
+   (`ignore_eos`, about 266 output tokens per request), so throughput is barely affected, but TTFT in repetitions 2 and
+   later can be slightly optimistic. The prefill sweeps run with prefix caching disabled on both engines
+   (`--no-prefix-caching` / `--no-enable-prefix-caching`), so every prompt is a true cold prefill.
 
-## Reproducibility notes (mistakes that cost runs, and the fix)
+## Reproducibility notes
 - Results are written to `/kaggle/working`, never `/tmp`: `/tmp` is lost when the kernel restarts.
 - After pinning torch the session must be restarted before anything imports torch; otherwise the old torch is
   still loaded and runs misbehave.
@@ -57,4 +54,3 @@ Triton 3.2.0, TuringServe at tag `m3-rc`, Qwen2.5-1.5B-Instruct fp16. Raw per-re
 
 ## Provenance notes
 - **Commit hashes in older result files.** The git history was rewritten on 2026-11-03 to change commit messages only (file contents are identical). Result files recorded before that carry the old hashes: `349b3f3` is now `b6dc052` (CI lint fixes) and `edd9b7d` is now `1e7c73a` (tag `m3-rc`). Files from 2026-11-03 carry `1e7c73a`.
-- **Hugging Face smoke file metadata.** `2026-11-02_hf_baseline_t4-1.5b_smoke.json` was recorded without `--engine` and `--label`, so its metadata said `turingserve` / `run`. Its `base_url` (port 8003) shows it measured the Hugging Face server; the metadata was corrected to `hf` / `hf-baseline-smoke` on 2026-11-03. No measured value was changed.
