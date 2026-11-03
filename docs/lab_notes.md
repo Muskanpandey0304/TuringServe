@@ -199,3 +199,15 @@ c=4 150, c=16/32/64 400, 2 reps. Output tok/s (TTFT p50 ms / TPOT p50 ms / goodp
 | 64 | 1805.2 (64 / 31.5) | 1308.0 (141 / 43.1) | 412.9 (29,568 / 34.8 / 5%) |
 At c=32 and c=64 the 16 slots are full, so extra requests wait inside the server (TTFT of 9 and 30 s, goodput 5%); throughput stays flat at about
 415-445 tok/s. That is a property of this slot configuration, not a measurement of the model speed alone. Server log: benchmarks/results/llamacpp/.
+
+### 2026-11-03 (Kaggle, Tesla T4) - cold prefill, three engines
+llama.cpp was started for the prefill sweep with `-np 1 -c 16384 --cache-ram 0 --no-cache-prompt` so no prompt is served from a cache; its server
+log shows every one of the 55 requests evaluating the full prompt. Same serve_bench prefill set (5 prompts each of 2048 / 4096 / 8000 tokens, c=1,
+3 reps), 0 errors, spread within each length under 1%. TTFT median:
+| prompt tokens | TuringServe | vLLM | llama.cpp |
+|---|---|---|---|
+| 2048 | 303 ms | 939 ms | 379 ms |
+| 4096 | 665 ms | 3,204 ms | 822 ms |
+| 8000 | 1,678 ms | 11,065 ms | 1,871 ms |
+TuringServe is 1.25x / 1.24x / 1.12x faster than llama.cpp and 3.1x / 4.8x / 6.6x faster than vLLM at 2048 / 4096 / 8000 tokens. llama.cpp's
+prefill time grows about 2.2x per doubling, like TuringServe's, and unlike vLLM's slow attention path (3.4-3.5x per doubling).

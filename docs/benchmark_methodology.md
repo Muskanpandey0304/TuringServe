@@ -39,7 +39,7 @@ Triton 3.2.0, TuringServe at tag `m3-rc`, Qwen2.5-1.5B-Instruct fp16. Raw per-re
    replays the same prompts in the warm-up and in every repetition. The ShareGPT sweeps are dominated by decoding
    (`ignore_eos`, about 266 output tokens per request), so throughput is barely affected, but TTFT in repetitions 2 and
    later can be slightly optimistic. The prefill sweeps run with prefix caching disabled on both engines
-   (`--no-prefix-caching` / `--no-enable-prefix-caching`), so every prompt is a true cold prefill.
+   (`--no-prefix-caching` / `--no-enable-prefix-caching` / llama.cpp `--cache-ram 0 --no-cache-prompt`), so every prompt is a true cold prefill.
 
 ## Reproducibility notes
 - Results are written to `/kaggle/working`, never `/tmp`: `/tmp` is lost when the kernel restarts.
