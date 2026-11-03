@@ -24,6 +24,7 @@ Triton 3.2.0, TuringServe at tag `m3-rc`, Qwen2.5-1.5B-Instruct fp16. Raw per-re
 | Cold prefill, every engine | 15 (5 per length) | 3 | c = 1; 2,048 / 4,096 / 8,000 tokens |
 | Ramp (TuringServe) | 300 | 1 | Poisson 0.5 to 8 req/s, 60 s per rate |
 | Soak (TuringServe) | 40,188 requests | 1 | Poisson 5.6 req/s for 2 hours |
+| Ablations (TuringServe) | 24 / 192 | 1 | c = 1 / c = 32 |
 
 ## Known limitations
 1. **HF baseline is a smoke test.** The sequential server holds one lock and `ignore_eos` forces full-length

@@ -243,3 +243,13 @@ backend`, `enable_prefix_caching=False`; benchmarks/results/vllm/vllm_flex.log).
 2.7x / 4.1x / 5.6x faster. ShareGPT (300 prompts, 1 rep, 0 errors) shows the cost on the decode side: 219 tok/s at 16 clients and 271 tok/s at 64, against 685 and 1,308 with the
 default backend (goodput 6% and 0%). Of the three attention backends vLLM 0.33 offers, FLASHINFER is refused on sm_75, TRITON_ATTN is the default and FLEX_ATTENTION has the faster prefill but a much
 slower decode; no vLLM configuration measured here comes close to TuringServe's 8,000-token prefill.
+
+### 2026-11-03 (Kaggle, Tesla T4) - ablations
+TuringServe at tag m3-rc, Qwen2.5-1.5B, ShareGPT, one feature changed at a time, 24 prompts at 1 client and 192 at 32 clients (one repetition,
+one session; benchmarks/results/*_ablation-*.json, kernel check in benchmarks/results/ablation/). 0 errors in all 14 runs. Output tok/s (1 client / 32 clients):
+baseline 64.2 / 1,021.1; no CUDA graphs 40.7 (-37%) / 764.0 (-25%); no chunked prefill 62.9 (-2%) / 993.1 (-3%); no prefix caching 63.8 (-1%) / 1,013.6 (-1%,
+TTFT p90 at 32 clients 212 -> 321 ms); INT8 weights 57.1 (-11%) / 955.8 (-6%); n-gram speculation k=4 68.8 (+7%) / 1,089.7 (+7%); Autopilot off (no startup tuning)
+63.1 (-2%) / 1,004.7 (-2%). CUDA graphs are the largest single gain. INT8 (W8A16) does not speed up decoding in this implementation on the T4, although it
+halves weight bytes; the server-less kernel check agrees (batch 1, no CUDA graphs: Triton fp16 35.9 tok/s = 48% of the 75 tok/s bandwidth limit, Triton INT8
+32.2 tok/s, reference kernels fp16 32.4 tok/s). Without CUDA graphs per-step overhead dominates batch-1 decode, which is why the Triton/reference gap is small
+there; the kernels' advantage shows in long-prompt prefill. INT8's benefit is memory (1.78 vs 3.09 GB of weights) at +0.16% perplexity.

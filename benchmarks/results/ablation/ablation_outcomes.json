@@ -1,0 +1,76 @@
+[
+ {
+  "name": "baseline",
+  "flags": [],
+  "started": true,
+  "c1": true,
+  "c32": true,
+  "note": ""
+ },
+ {
+  "name": "no-cuda-graphs",
+  "flags": [
+   "--no-cuda-graphs"
+  ],
+  "started": true,
+  "c1": true,
+  "c32": true,
+  "note": ""
+ },
+ {
+  "name": "no-chunked-prefill",
+  "flags": [
+   "--max-num-batched-tokens",
+   "4096"
+  ],
+  "started": true,
+  "c1": true,
+  "c32": true,
+  "note": ""
+ },
+ {
+  "name": "no-prefix-caching",
+  "flags": [
+   "--no-prefix-caching"
+  ],
+  "started": true,
+  "c1": true,
+  "c32": true,
+  "note": ""
+ },
+ {
+  "name": "int8",
+  "flags": [
+   "--quantization",
+   "int8"
+  ],
+  "started": true,
+  "c1": true,
+  "c32": true,
+  "note": ""
+ },
+ {
+  "name": "ngram-speculation",
+  "flags": [
+   "--spec-method",
+   "ngram",
+   "--spec-k",
+   "4"
+  ],
+  "started": true,
+  "c1": true,
+  "c32": true,
+  "note": ""
+ },
+ {
+  "name": "autopilot-off",
+  "flags": [
+   "--autopilot",
+   "off"
+  ],
+  "started": true,
+  "c1": true,
+  "c32": true,
+  "note": ""
+ }
+]

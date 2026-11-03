@@ -41,7 +41,7 @@ vLLM's other valid attention backend on this GPU (FLEX_ATTENTION) prefills 8,000
 
 Robustness (T4, 1.5B): a 2-hour soak at 5.6 requests per second sent 40,188 requests with zero errors and server memory flat (1,687 to 1,689 MB); the chaos test (client disconnects, a 200-request burst, empty and invalid input, emoji prompts) passed with a clean final state. The ramp reached 8 requests per second (1,682 tok/s) at 100% goodput without saturating.
 
-INT8 weights (W8A16) cost +0.16% WikiText-2 perplexity and no measurable GSM8K change. N-gram speculation helps at low and high concurrency (up to +17%) and is neutral in between; the 0.5B draft model is slower than no speculation everywhere on this workload. Autopilot showed no measurable benefit under the test load. Sample sizes and known limits are in [docs/benchmark_methodology.md](docs/benchmark_methodology.md).
+Ablations show CUDA graphs are the largest single gain (single-user speed 64.2 vs 40.7 tok/s without them). INT8 weights (W8A16) cost +0.16% WikiText-2 perplexity and no measurable GSM8K change and halve the weight memory, but in this implementation they do not speed up decoding on the T4 (6-11% slower). N-gram speculation helps at low and high concurrency (up to +17%) and is neutral in between; the 0.5B draft model is slower than no speculation everywhere on this workload. Autopilot showed no measurable benefit under the test load. Sample sizes and known limits are in [docs/benchmark_methodology.md](docs/benchmark_methodology.md).
 
 ## Architecture
 
