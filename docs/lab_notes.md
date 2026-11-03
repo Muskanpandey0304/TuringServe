@@ -245,3 +245,11 @@ tests in tests/correctness). The 24 skips are the attention needle cases that on
 115 tests (unit, correctness, end-to-end) pass on the same machine. In `test_cuda_graph_equals_eager` the n=31 case was resized to sequences of
 5 + 15 * i tokens (longest 455, under the 512-token model limit) with 600 KV blocks (462 needed); CUDA-graph replay equals eager execution
 bit for bit for n = 1, 3, 8 and 31.
+
+### 2026-11-03 (Kaggle, Tesla T4) - vLLM with FLEX_ATTENTION
+vLLM 0.33.0 started with `--attention-backend FLEX_ATTENTION --max-model-len 8192 --no-enable-prefix-caching` (log: `Using AttentionBackendEnum.FLEX_ATTENTION
+backend`, `enable_prefix_caching=False`; benchmarks/results/vllm/vllm_flex.log). Cold prefill TTFT median: 2048 tokens 819 ms, 4096 tokens 2,717 ms, 8000 tokens
+9,316 ms (spread under 1% per length), against 939 / 3,204 / 11,065 ms with vLLM's default Triton backend: 15-19% faster, and TuringServe (303 / 665 / 1,678 ms) is still
+2.7x / 4.1x / 5.6x faster. ShareGPT (300 prompts, 1 rep, 0 errors) shows the cost on the decode side: 219 tok/s at 16 clients and 271 tok/s at 64, against 685 and 1,308 with the
+default backend (goodput 6% and 0%). Of the three attention backends vLLM 0.33 offers, FLASHINFER is refused on sm_75, TRITON_ATTN is the default and FLEX_ATTENTION has the faster prefill but a much
+slower decode; no vLLM configuration measured here comes close to TuringServe's 8,000-token prefill.
