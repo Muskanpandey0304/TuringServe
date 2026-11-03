@@ -185,3 +185,17 @@ right before publishing (P55).
 
 ### 2026-11-03 - report generator
 `benchmarks/make_report.py` builds separate sections (ShareGPT comparison across engines, cold prefill per prompt length, speculative decoding, Autopilot with its decision counts, ramp, Hugging Face smoke run, soak and chaos, quality) entirely from the result JSON files.
+
+### 2026-11-03 (Kaggle, Tesla T4) - llama.cpp baseline (ShareGPT)
+llama.cpp 0.8.0-dev (commit 8fc0376), CUDA build for sm_75, f16 GGUF of Qwen2.5-1.5B-Instruct, `llama-server -ngl 99 -np 16 -c 65536 -fa on`
+(16 slots of 4,096 tokens), same serve_bench at tag m3-rc, ShareGPT with ignore_eos, 0 errors in every run. Sample sizes: c=1 60 prompts,
+c=4 150, c=16/32/64 400, 2 reps. Output tok/s (TTFT p50 ms / TPOT p50 ms / goodput):
+| c | TuringServe | vLLM | llama.cpp |
+|---|---|---|---|
+| 1 | 61.2 (27 / 16.3) | 59.1 (27 / 17.0) | 55.0 (42 / 18.0 / 100%) |
+| 4 | 232.2 (44 / 17.1) | 229.7 (52 / 16.8) | 82.2 (131 / 53.2 / 41%) |
+| 16 | 799.5 (48 / 19.4) | 685.3 (71 / 22.1) | 445.0 (102 / 32.1 / 98%) |
+| 32 | 1176.3 (56 / 25.6) | 936.3 (103 / 31.2) | 441.4 (9,177 / 32.6 / 5%) |
+| 64 | 1805.2 (64 / 31.5) | 1308.0 (141 / 43.1) | 412.9 (29,568 / 34.8 / 5%) |
+At c=32 and c=64 the 16 slots are full, so extra requests wait inside the server (TTFT of 9 and 30 s, goodput 5%); throughput stays flat at about
+415-445 tok/s. That is a property of this slot configuration, not a measurement of the model speed alone. Server log: benchmarks/results/llamacpp/.
