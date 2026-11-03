@@ -189,3 +189,6 @@ attention path; TuringServe grows about 2.2-2.5x. vLLM has no FlashAttention pat
 attention backend on this stack, which is the gap the project's MMA attention kernels close. Limits: one T4, one vLLM
 version and default settings, 5 prompts per length; vLLM may add a faster sm_75 attention path later, so re-run this baseline
 right before publishing (P55).
+
+### 2026-11-03 - report generator rewritten
+`benchmarks/make_report.py` now builds separate sections (ShareGPT comparison across engines, cold prefill per prompt length, speculative decoding, Autopilot with its decision counts, ramp, Hugging Face smoke, soak and chaos, quality) and lists the prefix-cache-hit prefill files as excluded. The first trial run showed the Hugging Face smoke file as a TuringServe row because its metadata was wrong (see the methodology provenance notes); corrected.

@@ -54,3 +54,7 @@ Triton 3.2.0, TuringServe at tag `m3-rc`, Qwen2.5-1.5B-Instruct fp16. Raw per-re
 - Download the result JSON files, not the server logs; check the JSON `meta.args.label` and `num_prompts` before
   committing.
 - Run each baseline engine in its own notebook (vLLM installs its own torch).
+
+## Provenance notes
+- **Commit hashes in older result files.** The git history was rewritten on 2026-11-03 to change commit messages only (file contents are identical). Result files recorded before that carry the old hashes: `349b3f3` is now `b6dc052` (CI lint fixes) and `edd9b7d` is now `1e7c73a` (tag `m3-rc`). Files from 2026-11-03 carry `1e7c73a`.
+- **Hugging Face smoke file metadata.** `2026-11-02_hf_baseline_t4-1.5b_smoke.json` was recorded without `--engine` and `--label`, so its metadata said `turingserve` / `run`. Its `base_url` (port 8003) shows it measured the Hugging Face server; the metadata was corrected to `hf` / `hf-baseline-smoke` on 2026-11-03. No measured value was changed.

@@ -13,7 +13,7 @@ speculative decoding (prompt lookup + draft model) and a self-tuning controller 
 (MMA) instructions for compute capability < 8.0, so the default attention in current vLLM on a T4 runs on
 FMA units (vLLM issue #60821: 10.2 s for an 8,000-token prefill on Qwen2.5-1.5B). TuringServe pins
 **torch 2.6.0 / Triton 3.2.0**, the last release that still emits `mma.sync` on sm_75, and writes its own
-paged-attention kernels. *The headline claim is only made after it is measured* (`benchmarks/REPORT.md`).
+paged-attention kernels. The measurements behind that claim are in `benchmarks/REPORT.md` (summary below).
 
 ## Status
 
@@ -23,10 +23,21 @@ Everything in the architecture is implemented. What has and has not been verifie
 |---|---|
 | Model (Qwen2), loader, paged KV cache, scheduler, engine, sampler, detokenizer, stop strings, API, metrics, prefix cache, speculative decoding (n-gram + draft), INT8 reference path, Autopilot controller, tuner cache | Implemented; **covered by CPU tests that pass** (tiny Qwen2 vs Hugging Face: logits <= 1e-4, layer-wise, greedy tokens identical) |
 | Triton kernels (rmsnorm, silu_mul, rope, kv_write, decode v1/v2/v3, prefill, w8a16), tuner measurement, CUDA graphs, memory profiler | Implemented to the spec; **GPU tests are written (`pytest -m gpu`) but have not been run yet** - they need a CUDA machine with torch 2.6 / Triton 3.2 |
-| Benchmarks, quality evals, Kaggle notebooks, soak/chaos | Harness written (`chaos.py` passes against the tiny CPU server); **no T4 numbers exist yet** |
+| Benchmarks, quality evals, Kaggle notebooks | **Measured on a Kaggle T4** (see below and `benchmarks/REPORT.md`): ShareGPT sweep against vLLM, cold prefill against vLLM, speculative decoding, Autopilot, INT8 quality. Soak and chaos on the T4: see the report once its section appears |
 
 No performance number in this repository is claimed until it appears in `benchmarks/REPORT.md`,
 which is generated only from committed result JSON files.
+
+### Headline results (one Kaggle Tesla T4, Qwen2.5-1.5B-Instruct fp16)
+
+| Measurement | TuringServe | vLLM 0.33.0 (Triton attention on sm_75) |
+|---|---|---|
+| Cold prefill, 8,000-token prompt (prefix caching off) | 1.68 s | 11.07 s (6.6x slower) |
+| Cold prefill, 2,048 / 4,096 tokens | 0.30 s / 0.67 s | 0.94 s / 3.20 s |
+| ShareGPT output tok/s, 64 concurrent clients | 1,805 | 1,308 (TuringServe +38%) |
+| ShareGPT output tok/s, 1 / 4 concurrent clients | 61.2 / 232.2 | 59.1 / 229.7 (equal within noise) |
+
+INT8 weights (W8A16) cost +0.16% WikiText-2 perplexity and no measurable GSM8K change. N-gram speculation helps at low and high concurrency (up to +17%) and is neutral in between; the 0.5B draft model is slower than no speculation everywhere on this workload. Autopilot showed no measurable benefit under the test load. Sample sizes, limits and the mistakes found along the way are in [docs/benchmark_methodology.md](docs/benchmark_methodology.md).
 
 ## Architecture
 
