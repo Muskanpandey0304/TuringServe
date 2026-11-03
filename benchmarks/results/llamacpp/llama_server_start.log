@@ -1,0 +1,40 @@
+0.00.150.913 I srv  llama_server: initializing ...
+0.00.150.973 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
+0.00.151.630 W srv  server_setup: security: no API key is set and CORS allows all origins (see https://github.com/ggml-org/llama.cpp/pull/25655)
+0.00.156.484 I srv    load_model: loading model '/kaggle/working/gguf/Qwen2.5-1.5B-Instruct-f16.gguf'
+0.00.715.358 W load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+0.01.476.991 I cmn          init: llama threadpool init, n_threads = 2
+0.01.610.693 I srv    load_model: initializing, n_slots = 16, n_ctx_slot = 4096, kv_unified = 'false'
+0.01.616.770 I srv  server_run_i: model loaded
+0.01.616.821 I srv  server_on_li: listening on http://127.0.0.1:8002
+0.02.907.963 I slot get_availabl: id  0 | task -1 | selected slot by LRU, n_tokens = 0, t_last = -1
+0.02.908.038 I slot launch_slot_: id  0 | task 0 | processing task, is_child = 0
+0.03.242.090 I slot print_timing: id  0 | task 0 | prompt eval time =      35.51 ms /     5 tokens (    7.10 ms per token,   140.79 tokens per second)
+0.03.242.131 I slot print_timing: id  0 | task 0 |        eval time =     298.49 ms /    16 tokens (   19.90 ms per token,    50.25 tokens per second)
+0.03.242.133 I slot print_timing: id  0 | task 0 |       total time =     334.01 ms /    21 tokens
+0.03.242.142 I slot print_timing: id  0 | task 0 |    graphs reused =         15
+0.03.242.143 I slot print_timing: id  0 | task 0 |   graph reallocs =          0    /     0        (same size) / (changed size)
+0.03.242.189 I slot      release: id  0 | task 0 | stop processing: n_tokens = 20, truncated = 0
+2.14.684.251 I slot get_availabl: id  1 | task -1 | selected slot by LRU, n_tokens = 0, t_last = -1
+2.14.684.313 I slot launch_slot_: id  1 | task 17 | processing task, is_child = 0
+2.14.685.786 I slot get_availabl: id  2 | task -1 | selected slot by LRU, n_tokens = 0, t_last = -1
+2.14.685.812 I slot launch_slot_: id  2 | task 18 | processing task, is_child = 0
+2.14.685.911 I slot get_availabl: id  3 | task -1 | selected slot by LRU, n_tokens = 0, t_last = -1
+2.14.685.925 I slot launch_slot_: id  3 | task 19 | processing task, is_child = 0
+2.14.686.019 I slot get_availabl: id  4 | task -1 | selected slot by LRU, n_tokens = 0, t_last = -1
+2.14.686.031 I slot launch_slot_: id  4 | task 20 | processing task, is_child = 0
+2.17.811.880 I slot print_timing: id  3 | task 19 | prompt eval time =     197.47 ms /    66 tokens (    2.99 ms per token,   334.23 tokens per second)
+2.17.811.891 I slot print_timing: id  3 | task 19 |        eval time =    2928.06 ms /   156 tokens (   18.89 ms per token,    52.94 tokens per second)
+2.17.811.893 I slot print_timing: id  3 | task 19 |       total time =    3125.53 ms /   222 tokens
+2.17.811.895 I slot print_timing: id  3 | task 19 |    graphs reused =        169
+2.17.811.896 I slot print_timing: id  3 | task 19 |   graph reallocs =          0    /     0        (same size) / (changed size)
+2.17.811.961 I slot      release: id  3 | task 19 | stop processing: n_tokens = 221, truncated = 0
+2.17.853.936 I slot get_availabl: id  3 | task -1 | selected slot by LCP similarity, f_sim_best = 0.545 (> 0.100 thold), f_keep = 0.109
+2.17.860.890 I slot launch_slot_: id  3 | task 178 | processing task, is_child = 0
+2.17.931.758 I slot print_timing: id  1 | task 17 | n_gen =    158, tg =  51.45 t/s, tg_3s =  51.78 t/s
+2.17.932.218 I slot print_timing: id  2 | task 18 | n_gen =    158, tg =  51.47 t/s, tg_3s =  51.80 t/s
+2.17.933.542 I slot print_timing: id  4 | task 20 | n_gen =    158, tg =  51.51 t/s, tg_3s =  51.84 t/s
+2.20.939.768 I slot print_timing: id  1 | task 17 | n_gen =    316, tg =  51.98 t/s, tg_3s =  52.53 t/s
+2.20.940.315 I slot print_timing: id  2 | task 18 | n_gen =    316, tg =  52.00 t/s, tg_3s =  52.52 t/s
+2.20.940.822 I slot print_timing: id  3 | task 178 | n_gen =    159, tg =  52.53 t/s, tg_3s =  52.86 t/s
+2.20.941.262 I slot print_timing: id  4 | task 20 | n_gen =    316, tg =  52.02 t/s, tg_3s =  52.53 t/s
