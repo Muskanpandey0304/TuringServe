@@ -1,0 +1,73 @@
+INFO:     Started server process [258]
+INFO:     Waiting for application startup.
+{"ts": 1793700090.479, "level": "info", "event": "tuning cache miss; measuring kernels (this takes a few minutes)", "key": "Tesla-T4__qwen__float16__mml8192__tok2048__torch2.6.0+cu124__triton3.2.0.json"}
+{"ts": 1793700216.929, "level": "info", "event": "tuning_done", "kernels": {"decode_v2": 48, "decode_v3": 48, "prefill": 8}}
+{"ts": 1793700216.93, "level": "info", "event": "tuning saved", "path": "/root/.turingserve/tuning/Tesla-T4__qwen__float16__mml8192__tok2048__torch2.6.0+cu124__triton3.2.0.json"}
+{"ts": 1793700218.72, "level": "info", "event": "memory_profile", "baseline_gib": 0.102, "total_gib": 14.562, "weights_and_peak_gib": 3.676, "non_torch_gib": 0.029, "graph_reserve_gib": 0.25, "kv_budget_gib": 8.32, "num_blocks": 19473, "max_tokens": 311568}
+{"ts": 1793700218.72, "level": "info", "event": "kv_cache", "num_blocks": 19473, "max_tokens": 311568, "kv_gib": 8.32}
+{"ts": 1793700220.802, "level": "info", "event": "cuda_graphs_captured", "sizes": [1, 2, 4, 8, 16, 32, 64, 128]}
+{"ts": 1793700310.895, "level": "info", "event": "chunk sweep", "chosen": 2048, "results": {"512": {"throughput": 394.1539103614817, "ttft_p90": 3.596194260499942, "tpot_p90": 0.0431575196259842}, "1024": {"throughput": 408.92114706288453, "ttft_p90": 1.022860640200042, "tpot_p90": 0.039044823297638316}, "2048": {"throughput": 410.6769171261189, "ttft_p90": 0.9825923672000515, "tpot_p90": 0.03661144841338643}}}
+{"ts": 1793700310.895, "level": "info", "event": "engine_ready", "model": "qwen", "device": "cuda", "kernels": "triton", "dtype": "float16", "quantization": "none", "spec": "none", "autopilot": "startup"}
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:55786 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55796 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44784 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44796 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44812 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44816 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44822 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44838 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44842 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44856 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44872 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44880 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44890 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44906 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44922 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44934 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44948 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44964 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44966 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49284 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49290 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49306 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49320 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49324 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49340 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49354 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49370 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52988 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53004 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53008 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53010 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53016 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53030 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53046 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53050 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53054 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53064 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53068 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53072 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53078 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36318 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36334 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36340 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36352 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36360 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36370 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36380 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36384 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36390 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36396 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36404 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36412 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36424 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37138 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37144 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37152 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37164 - "POST /v1/completions HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [258]
