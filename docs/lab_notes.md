@@ -130,3 +130,20 @@ Findings: n-gram helps at c=1 (+4% to +15%) and c=16 (+10% to +17%) but is neutr
 (-1% to -10%). The 0.5B draft model is a net loss everywhere (-20% to -57% vs none; worse as k grows): on ShareGPT chat
 text the draft step costs more than the accepted tokens save on a T4. Autopilot should therefore pick between none
 and ngram only. Server logs downloaded earlier (server_spec_*.log, 22:41) were from the smoke test, not the sweep.
+
+### 2026-11-03 (Kaggle, Tesla T4) - Autopilot experiment (Build Guide Phase 12)
+Qwen2.5-1.5B fp16, ShareGPT 400 prompts, Poisson profile 0.5 -> 4 -> 0.5 req/s (120 s each), 3 reps, 587 requests per
+rep, 0 errors, 100% goodput in all three configurations (benchmarks/results/*_autopilot-*.json, server logs with the
+decision lines in benchmarks/results/autopilot/).
+| config | tok/s | TTFT p50/p90 ms | TPOT p50 ms |
+|---|---|---|---|
+| autopilot off (defaults) | 443.6 | 50.1 / 66.3 | 25.5 |
+| autopilot off + ngram k4 | 450.5 | 52.6 / 65.0 | 25.4 |
+| autopilot full + ngram | 444.2 | 55.9 / 72.3 | 25.8 |
+Finding: no measurable difference. The load is arrival-limited (4 req/s peak never saturates the T4: KV usage <4%,
+no preemptions), so tok/s is set by the arrival rate and cannot separate the configurations. Autopilot made 51
+decisions, almost all rule R4 toggling spec_on/spec_k (acceptance EMA only 0.02-0.48 on ShareGPT, so it correctly backs
+off ngram) and a few R3 spec_skip, but it flaps spec_on off/on repeatedly instead of settling. A saturating profile
+(e.g. 8-16 req/s) or a repeat-heavy workload would be needed to show an Autopilot benefit; not claimed here.
+Process note: the first run of the cell wrote all three results to one file named {name}.json because a ! line inside a
+for loop does not interpolate variables; the full run was kept by renaming and the other two were rerun via subprocess.
